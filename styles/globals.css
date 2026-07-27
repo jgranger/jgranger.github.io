@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @import "@fontsource-variable/outfit";
 @import "@fontsource-variable/work-sans";
 
