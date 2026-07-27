@@ -81,15 +81,31 @@ describe("getTableOfContents", () => {
 });
 
 describe("getAdjacentChapters", () => {
-  it("resolves previous and next by slug, ignoring draft status", () => {
-    const adjacent = getAdjacentChapters(FIXTURE_DIR, "third-chapter");
-    expect(adjacent.previous?.slug).toBe("second-chapter");
-    expect(adjacent.next).toBeNull();
+  it("resolves a published previous chapter by slug", () => {
+    const adjacent = getAdjacentChapters(FIXTURE_DIR, "second-chapter");
+    expect(adjacent.previous?.slug).toBe("first-chapter");
+  });
+
+  it("resolves a published next chapter by slug", () => {
+    const adjacent = getAdjacentChapters(FIXTURE_DIR, "second-chapter");
+    expect(adjacent.next?.slug).toBe("third-chapter");
+  });
+
+  it("returns null instead of a draft chapter, even when frontmatter points at one", () => {
+    const previousIsDraft = getAdjacentChapters(FIXTURE_DIR, "third-chapter");
+    expect(previousIsDraft.previous).toBeNull();
+
+    const nextIsDraft = getAdjacentChapters(FIXTURE_DIR, "first-chapter");
+    expect(nextIsDraft.next).toBeNull();
   });
 
   it("returns null previous for the first chapter", () => {
     const adjacent = getAdjacentChapters(FIXTURE_DIR, "first-chapter");
     expect(adjacent.previous).toBeNull();
-    expect(adjacent.next?.slug).toBe("second-chapter");
+  });
+
+  it("returns null next for the last chapter", () => {
+    const adjacent = getAdjacentChapters(FIXTURE_DIR, "third-chapter");
+    expect(adjacent.next).toBeNull();
   });
 });

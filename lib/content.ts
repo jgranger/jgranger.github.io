@@ -107,7 +107,13 @@ export function getAdjacentChapters(
     ? getChapterBySlug(contentDir, chapter.meta.next)
     : null;
   return {
-    previous: previousChapter ? toTocEntry(previousChapter) : null,
-    next: nextChapter ? toTocEntry(nextChapter) : null,
+    previous:
+      previousChapter && previousChapter.meta.status === "published"
+        ? toTocEntry(previousChapter)
+        : null,
+    next:
+      nextChapter && nextChapter.meta.status === "published"
+        ? toTocEntry(nextChapter)
+        : null,
   };
 }
