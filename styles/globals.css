@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "@fontsource-variable/outfit";
+@import "@fontsource-variable/work-sans";
+
+@theme inline {
+  --font-sans: "Work Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Outfit Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-coral: var(--brand-coral-500);
+  --color-coral-foreground: var(--coral-foreground);
+  --color-crimson: var(--brand-crimson-500);
+  --color-crimson-700: var(--brand-crimson-700);
+  --color-crimson-foreground: var(--crimson-foreground);
+  --color-night-sky: var(--brand-night-sky);
+  --color-periwinkle: var(--brand-periwinkle);
+  --color-parchment: var(--brand-parchment);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-subtle: var(--foreground-subtle);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+
+  --text-h1: clamp(3rem, 2.47rem + 2.25vw, 4.5rem);
+  --text-h1--line-height: clamp(4rem, 3.47rem + 2.25vw, 5.5rem);
+  --text-h2: clamp(2.5rem, 2.15rem + 1.5vw, 3.5rem);
+  --text-h2--line-height: clamp(3rem, 2.65rem + 1.5vw, 4rem);
+  --text-h3: clamp(2rem, 1.82rem + 0.75vw, 2.5rem);
+  --text-h3--line-height: clamp(2.5rem, 2.32rem + 0.75vw, 3rem);
+  --text-h4: clamp(1.25rem, 1.16rem + 0.38vw, 1.5rem);
+  --text-h4--line-height: 2rem;
+  --text-h5: clamp(1.25rem, 1.16rem + 0.38vw, 1.5rem);
+  --text-h5--line-height: clamp(1.5rem, 1.32rem + 0.75vw, 2rem);
+  --text-h6: clamp(1rem, 0.955rem + 0.19vw, 1.125rem);
+  --text-h6--line-height: clamp(1.5rem, 1.41rem + 0.38vw, 1.75rem);
+  --text-lead: clamp(1rem, 0.91rem + 0.38vw, 1.25rem);
+  --text-lead--line-height: clamp(1.5rem, 1.32rem + 0.75vw, 2rem);
+  --text-p1: clamp(0.875rem, 0.83rem + 0.19vw, 1rem);
+  --text-p1--line-height: clamp(1.25rem, 1.16rem + 0.38vw, 1.5rem);
+  --text-p2: clamp(0.75rem, 0.71rem + 0.19vw, 0.875rem);
+  --text-p2--line-height: clamp(1rem, 0.91rem + 0.38vw, 1.25rem);
+  --text-small: clamp(0.625rem, 0.58rem + 0.19vw, 0.75rem);
+  --text-small--line-height: clamp(0.875rem, 0.83rem + 0.19vw, 1rem);
+  --text-eyebrow: clamp(0.625rem, 0.58rem + 0.19vw, 0.75rem);
+  --text-eyebrow--line-height: clamp(0.75rem, 0.71rem + 0.19vw, 0.875rem);
+  --text-eyebrow--letter-spacing: 0.0625rem;
+
+  --width-reading: 42rem;
+  --width-wide: 64rem;
+}
+
+:root {
+  --brand-coral-500: #fc5c50;
+  --brand-crimson-500: #a4275e;
+  --brand-crimson-700: #7e1941;
+  --brand-night-sky: #2d2c3e;
+  --brand-periwinkle: #baccfa;
+  --brand-parchment: #f3f2e6;
+  --brand-pure-white: #ffffff;
+
+  --background: var(--brand-pure-white);
+  --foreground: var(--brand-night-sky);
+  --foreground-secondary: color-mix(in oklab, var(--foreground) 75%, transparent);
+  --foreground-subtle: color-mix(in oklab, var(--foreground) 55%, transparent);
+  --muted: var(--brand-parchment);
+  --muted-foreground: color-mix(in oklab, var(--brand-night-sky) 65%, transparent);
+  --accent: var(--brand-crimson-500);
+  --accent-foreground: var(--brand-pure-white);
+  --border: color-mix(in oklab, var(--brand-night-sky) 12%, transparent);
+  --ring: color-mix(in oklab, var(--brand-coral-500) 60%, transparent);
+  --coral-foreground: var(--brand-night-sky);
+  --crimson-foreground: var(--brand-parchment);
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: var(--brand-night-sky);
+  --foreground: var(--brand-parchment);
+  --foreground-secondary: color-mix(in oklab, var(--foreground) 75%, transparent);
+  --foreground-subtle: color-mix(in oklab, var(--foreground) 55%, transparent);
+  --muted: #3a3950;
+  --muted-foreground: color-mix(in oklab, var(--brand-parchment) 70%, transparent);
+  --accent: var(--brand-crimson-500);
+  --accent-foreground: var(--brand-parchment);
+  --border: color-mix(in oklab, var(--brand-parchment) 12%, transparent);
+  --ring: color-mix(in oklab, var(--brand-coral-500) 60%, transparent);
+  --coral-foreground: var(--brand-night-sky);
+  --crimson-foreground: var(--brand-parchment);
+}
+
+@layer utilities {
+  .font-heading { font-family: var(--font-heading); }
+  .text-h1 { font-family: var(--font-heading); font-weight: 600; font-size: var(--text-h1); line-height: var(--text-h1--line-height); }
+  .text-h2 { font-family: var(--font-heading); font-weight: 600; font-size: var(--text-h2); line-height: var(--text-h2--line-height); }
+  .text-h3 { font-family: var(--font-heading); font-weight: 600; font-size: var(--text-h3); line-height: var(--text-h3--line-height); }
+  .text-h4 { font-family: var(--font-heading); font-weight: 500; font-size: var(--text-h4); line-height: var(--text-h4--line-height); }
+  .text-h5 { font-family: var(--font-heading); font-weight: 600; font-size: var(--text-h5); line-height: var(--text-h5--line-height); }
+  .text-h6 { font-family: var(--font-heading); font-weight: 600; font-size: var(--text-h6); line-height: var(--text-h6--line-height); }
+  .text-lead { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-lead); line-height: var(--text-lead--line-height); }
+  .text-p1 { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-p1); line-height: var(--text-p1--line-height); }
+  .text-p2 { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-p2); line-height: var(--text-p2--line-height); }
+  .text-small { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-small); line-height: var(--text-small--line-height); }
+  .text-eyebrow { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-eyebrow); line-height: var(--text-eyebrow--line-height); letter-spacing: var(--text-eyebrow--letter-spacing); text-transform: uppercase; }
+}
+
+@layer base {
+  html { font-family: var(--font-sans); }
+  body { background: var(--color-background); color: var(--color-foreground); }
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 600; }
+}
