@@ -12,12 +12,11 @@
     "@fontsource-variable/outfit": "^5.1.0",
     "@fontsource-variable/work-sans": "^5.1.0",
     "@mdx-js/react": "^3.1.0",
-    "@rollup/rollup-linux-x64-gnu": "^4.62.3",
     "gray-matter": "^4.0.3",
     "mermaid": "^11.4.0",
     "motion": "^11.15.0",
-    "next": "^9.3.3",
-    "next-mdx-remote": "^6.0.0",
+    "next": "^15.4.0",
+    "next-mdx-remote": "^5.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
@@ -29,11 +28,11 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.0",
-    "eslint": "^10.8.0",
-    "eslint-config-next": "^16.2.12",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.4.0",
     "jsdom": "^25.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^4.1.10"
+    "vitest": "^2.1.0"
   }
 }
