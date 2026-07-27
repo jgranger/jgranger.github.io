@@ -11,6 +11,7 @@ import { ChapterHeader } from "@/components/publication/ChapterHeader";
 import { ChapterNavigation } from "@/components/publication/ChapterNavigation";
 import { PrevNextNav } from "@/components/publication/PrevNextNav";
 import { ChapterProgress } from "@/components/publication/ChapterProgress";
+import { RecordVisit } from "@/components/publication/RecordVisit";
 import { Callout } from "@/components/content/Callout";
 import { Quote } from "@/components/content/Quote";
 import { CodeBlock } from "@/components/content/CodeBlock";
@@ -62,6 +63,11 @@ export default async function ChapterPage({
   return (
     <main className="max-w-(--width-reading) mx-auto px-4 py-16">
       <ChapterProgress />
+      <RecordVisit
+        title={chapter.meta.title}
+        part={chapter.meta.part}
+        slug={chapter.meta.slug}
+      />
       <ChapterHeader
         partTitle={chapter.meta.partTitle}
         chapterNumber={chapter.meta.chapterNumber}
