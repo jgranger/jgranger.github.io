@@ -4,3 +4,6 @@ out/
 *.log
 .DS_Store
 tsconfig.tsbuildinfo
+
+# Local-only writing/ideas — never public, structure-only stays in docs/
+docs/private/
