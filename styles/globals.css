@@ -114,6 +114,57 @@
     border-color: color-mix(in oklab, var(--accent-magenta) 25%, transparent);
     box-shadow: 0 0 20px 0 color-mix(in oklab, var(--accent-magenta) 6%, transparent);
   }
+
+  /* Homepage hero atmosphere: a blue-to-purple gradient wash plus a
+     perspective grid floor, both purely decorative — pointer-events:none
+     is deliberate defense-in-depth so this can never block a click on the
+     real content stacked above it via z-index. */
+  .hero-grid {
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-violet) 100%);
+    opacity: 0.13;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-grid::after {
+    content: "";
+    position: absolute;
+    left: -25%;
+    right: -25%;
+    bottom: 0;
+    height: 60%;
+    background-image:
+      repeating-linear-gradient(
+        to right,
+        color-mix(in oklab, var(--accent-cyan) 45%, transparent) 0,
+        color-mix(in oklab, var(--accent-cyan) 45%, transparent) 1px,
+        transparent 1px,
+        transparent 64px
+      ),
+      repeating-linear-gradient(
+        to top,
+        color-mix(in oklab, var(--accent-cyan) 45%, transparent) 0,
+        color-mix(in oklab, var(--accent-cyan) 45%, transparent) 1px,
+        transparent 1px,
+        transparent 64px
+      );
+    transform: perspective(400px) rotateX(60deg);
+    transform-origin: bottom;
+    mask-image: linear-gradient(to top, black 0%, black 55%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, black 0%, black 55%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-grid > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 @layer base {
