@@ -30,6 +30,7 @@ export function KonamiListener() {
         progress.current += 1;
         if (progress.current === SEQUENCE.length) {
           progress.current = 0;
+          sessionStorage.setItem("konami-unlocked", "true");
           router.push("/end-of-line/");
         }
       } else {
