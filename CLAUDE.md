@@ -20,9 +20,11 @@ This repo is public (`jgranger/jgranger.github.io`, required for free-tier GitHu
 - Deployed to GitHub Pages at the root of `jgranger.github.io` (this repo was renamed from `agentic-journey` specifically for that).
 - Draft chapters (`status: draft`) get no page in the production build.
 
-## Current status (2026-07-28)
+## Current status (2026-08-04)
 
-The v1 website (all 22 tasks from the implementation plan) is built, reviewed, merged to `main`, and deployed — live at https://jgranger.github.io/. Home, Table of Contents, About, and 4 chapters are published; 8 chapters exist as drafts (excluded from the build). All chapter content right now is placeholder text written from titles alone — it does NOT yet reflect `docs/private/book-vision.md`'s thesis, voice, or structure. Jon is writing the real prose himself going forward; my role is helping get the chapter taxonomy/topics right and building out site features as needed, not drafting book content. Do not invent real company facts, metrics, quotes, or outcomes — see the design spec's explicit constraint on this.
+The v1 website (all 22 tasks from the implementation plan) is built, reviewed, merged to `main`, and deployed — live at https://jgranger.github.io/. Home, Table of Contents, About, and 4 chapters are published; the rest exist as drafts (excluded from the build). All chapter content on the live site is still placeholder text written from titles alone — it does NOT yet reflect `docs/private/book-vision.md`'s thesis, voice, or structure. `docs/private/book-vision.md` also now carries the actual chapter taxonomy (a real 4-part structure plus a few new chapters), superseding the older flat list mentioned in its own text.
+
+Real chapter drafting now happens as: Jon speaks/dictates a chapter's content, Claude transcribes it into prose and saves it under `docs/private/chapters/` (gitignored, same as `book-vision.md`) — **never rewritten or edited beyond spelling/grammar fixes; Jon's actual words and voice must come through untouched.** This is different from ordinary ghostwriting-by-summary. Drafted chapters stay in `docs/private/chapters/` until Jon decides a chapter is ready to move into the public `content/book/*.mdx` files — that move is a separate, deliberate step, not automatic. Do not invent real company facts, metrics, quotes, or outcomes — see the design spec's explicit constraint on this.
 
 ## Execution model
 
