@@ -34,7 +34,17 @@ const HOLE = { x: WIDTH - 90, y: 70 };
 // the real game's look instead of a flat top-down grid.
 const ISO_K = 0.5;
 const ISO_OFFSET_X = 240;
-const ISO_OFFSET_Y = 40;
+// Extra headroom above the floor's back corner for walls/machinery to
+// rise into, without going off the top of the canvas.
+const ISO_OFFSET_Y = 80;
+const WALL_HEIGHT = 55;
+
+function toScreen(x: number, y: number): { x: number; y: number } {
+  return {
+    x: ISO_K * (x - y) + ISO_OFFSET_X,
+    y: (ISO_K / 2) * (x + y) + ISO_OFFSET_Y,
+  };
+}
 
 function toLogical(sx: number, sy: number): { x: number; y: number } {
   const dx = sx - ISO_OFFSET_X;
@@ -220,27 +230,110 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       context.restore();
     }
 
-    // Ambient glow orbs (the reference's floating purple energy rings),
-    // decorative only, gently pulsing.
-    function drawOrb(
+    // A small pedestal with a pulsing energy ring floating above it — our
+    // own take on the reference's pickup-on-a-pedestal prop.
+    function drawPedestal(
       context: CanvasRenderingContext2D,
-      x: number,
-      y: number,
+      cx: number,
+      cy: number,
       color: string,
       now: number,
       phase: number
     ) {
+      const top = drawIsoBlock(context, cx, cy, 12, 9, 10, "#3a3f4d", "#20222c");
       const pulse = 0.6 + 0.4 * Math.sin(now / 500 + phase);
       context.save();
-      context.globalAlpha = 0.25 + 0.25 * pulse;
+      context.globalAlpha = 0.35 + 0.35 * pulse;
       context.beginPath();
-      context.arc(x, y, 7, 0, Math.PI * 2);
+      context.arc(top.x, top.y - 14, 7, 0, Math.PI * 2);
       context.strokeStyle = color;
       context.lineWidth = 2;
       context.shadowColor = color;
       context.shadowBlur = 8 * pulse;
       context.stroke();
       context.restore();
+    }
+
+    // A wall rising WALL_HEIGHT px from a floor-plane edge (logical
+    // coordinates), drawn in plain screen space via toScreen — computed
+    // here rather than inside the floor's sheared transform, since a
+    // vertical rise on screen isn't a straight line in logical space
+    // once you've applied the shear.
+    function drawIsoWall(
+      context: CanvasRenderingContext2D,
+      fromX: number,
+      fromY: number,
+      toX: number,
+      toY: number,
+      color: string,
+      lightColor: string
+    ) {
+      const a = toScreen(fromX, fromY);
+      const b = toScreen(toX, toY);
+      context.save();
+      context.beginPath();
+      context.moveTo(a.x, a.y);
+      context.lineTo(b.x, b.y);
+      context.lineTo(b.x, b.y - WALL_HEIGHT);
+      context.lineTo(a.x, a.y - WALL_HEIGHT);
+      context.closePath();
+      context.fillStyle = color;
+      context.fill();
+      context.strokeStyle = lightColor;
+      context.lineWidth = 1;
+      context.stroke();
+      context.restore();
+    }
+
+    // A simple raised block (console/pedestal), footprint centered at a
+    // logical point, drawn as a top face plus two visible side faces —
+    // same screen-space technique as the walls.
+    function drawIsoBlock(
+      context: CanvasRenderingContext2D,
+      cx: number,
+      cy: number,
+      halfW: number,
+      halfD: number,
+      height: number,
+      topColor: string,
+      sideColor: string
+    ) {
+      const corners = [
+        toScreen(cx - halfW, cy - halfD),
+        toScreen(cx + halfW, cy - halfD),
+        toScreen(cx + halfW, cy + halfD),
+        toScreen(cx - halfW, cy + halfD),
+      ];
+      context.save();
+      // Left face (front-left corner pair).
+      context.beginPath();
+      context.moveTo(corners[0].x, corners[0].y);
+      context.lineTo(corners[3].x, corners[3].y);
+      context.lineTo(corners[3].x, corners[3].y - height);
+      context.lineTo(corners[0].x, corners[0].y - height);
+      context.closePath();
+      context.fillStyle = sideColor;
+      context.fill();
+      // Right face (front-right corner pair).
+      context.beginPath();
+      context.moveTo(corners[2].x, corners[2].y);
+      context.lineTo(corners[3].x, corners[3].y);
+      context.lineTo(corners[3].x, corners[3].y - height);
+      context.lineTo(corners[2].x, corners[2].y - height);
+      context.closePath();
+      context.fillStyle = sideColor;
+      context.fill();
+      // Top face.
+      context.beginPath();
+      context.moveTo(corners[0].x, corners[0].y - height);
+      context.lineTo(corners[1].x, corners[1].y - height);
+      context.lineTo(corners[2].x, corners[2].y - height);
+      context.lineTo(corners[3].x, corners[3].y - height);
+      context.closePath();
+      context.fillStyle = topColor;
+      context.fill();
+      context.restore();
+      return { x: (corners[0].x + corners[2].x) / 2, y: corners[0].y - height };
     }
 
     function draw(
@@ -252,6 +345,29 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       context.clearRect(0, 0, WIDTH, HEIGHT);
       context.fillStyle = "#05070d";
       context.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // Back walls, in screen space — the room enclosure the flat floor
+      // was missing. Tron-accented panel lines rather than bare steel.
+      drawIsoWall(context, 0, 0, WIDTH, 0, "#171923", "rgba(34, 211, 238, 0.25)");
+      drawIsoWall(context, 0, 0, 0, HEIGHT, "#11131c", "rgba(167, 139, 250, 0.2)");
+
+      // A console silhouette against the back corner — our own shape,
+      // not a copy of any reference image.
+      const consoleTop = drawIsoBlock(context, 120, 90, 34, 26, 42, "#3a3f4d", "#20222c");
+      context.save();
+      context.fillStyle = "#ef4444";
+      context.shadowColor = "#ef4444";
+      context.shadowBlur = 6;
+      context.beginPath();
+      context.arc(consoleTop.x, consoleTop.y + 10, 3, 0, Math.PI * 2);
+      context.fill();
+      context.shadowBlur = 0;
+      context.restore();
+
+      // Pedestal-mounted energy pickups, decorative only.
+      drawPedestal(context, 260, 140, "#a78bfa", now, 0);
+      drawPedestal(context, 480, 240, "#ec4899", now, 1.4);
+      drawPedestal(context, 340, 300, "#a78bfa", now, 2.6);
 
       // Everything below renders through the isometric shear so the flat
       // physics plane above reads as a tilted floor, like the real game.
@@ -286,13 +402,10 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.stroke();
       }
 
-      // Background dressing: pipes along the edges, ambient orbs scattered
-      // through the scene — all decorative, none of it interactive.
+      // Pipes running the floor's back edges — flat, so they can stay
+      // inside the sheared floor transform along with the tile grid.
       drawPipe(context, 20, 16, WIDTH - 40, false);
       drawPipe(context, WIDTH - 24, 30, HEIGHT - 60, true);
-      drawOrb(context, 130, 100, "#a78bfa", now, 0);
-      drawOrb(context, WIDTH - 160, 260, "#ec4899", now, 1.4);
-      drawOrb(context, 280, HEIGHT - 50, "#a78bfa", now, 2.6);
 
       // Sink animation progress (0 = just sunk, 1 = fully settled/hidden).
       const sinkProgress = sunk.current
