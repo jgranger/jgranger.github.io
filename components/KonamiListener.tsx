@@ -31,7 +31,7 @@ export function KonamiListener() {
         if (progress.current === SEQUENCE.length) {
           progress.current = 0;
           sessionStorage.setItem("konami-unlocked", "true");
-          router.push("/end-of-line/");
+          router.push("/for-the-users/");
         }
       } else {
         // Allow the sequence to restart cleanly if the first key of a new

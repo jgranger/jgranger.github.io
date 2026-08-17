@@ -147,6 +147,70 @@
     background-size: cover, 100% 100%;
     background-position: center, center;
   }
+
+  /* "For the Users" reveal: the game grid turning from red (MCP control)
+     back to blue (freedom), played once on page load. One continuous
+     keyframe timeline per layer rather than separately-timed JS stages —
+     animation-fill-mode:forwards holds the end state until the component
+     unmounts the overlay just after it finishes. */
+  .reveal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+  }
+  .reveal-grid {
+    position: absolute;
+    inset: 0;
+    background-image: url("/hero-grid.png");
+    background-size: cover;
+    background-position: center;
+    background-color: var(--color-background);
+    animation: reveal-grid-hue 2.8s ease forwards;
+  }
+  .reveal-flash {
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    animation: reveal-flash-pulse 2.8s ease forwards;
+  }
+  .reveal-title {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    animation: reveal-title-in 2.8s ease forwards;
+  }
+
+  @keyframes reveal-grid-hue {
+    0% { filter: hue-rotate(160deg) saturate(1.4) brightness(1); }
+    35% { filter: hue-rotate(160deg) saturate(1.7) brightness(1.3); }
+    45% { filter: hue-rotate(160deg) saturate(1.2) brightness(0.7); }
+    55% { filter: hue-rotate(160deg) saturate(1.7) brightness(1.4); }
+    65% { filter: hue-rotate(120deg) brightness(1); }
+    80% { filter: hue-rotate(30deg) brightness(1.7); }
+    100% { filter: hue-rotate(0deg) saturate(1) brightness(1); }
+  }
+  @keyframes reveal-flash-pulse {
+    0%, 58% { opacity: 0; }
+    61% { opacity: 0.85; }
+    64%, 100% { opacity: 0; }
+  }
+  @keyframes reveal-title-in {
+    0%, 68% { opacity: 0; transform: translateY(8px); }
+    85%, 100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-grid, .reveal-flash, .reveal-title {
+      animation: none;
+    }
+    .reveal-grid { filter: none; }
+    .reveal-flash { opacity: 0; }
+    .reveal-title { opacity: 1; }
+  }
 }
 
 @layer base {

@@ -13,9 +13,11 @@ export function ChapterSidebar({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [bonusUnlocked, setBonusUnlocked] = useState(false);
+  const [gameUnlocked, setGameUnlocked] = useState(false);
 
   useEffect(() => {
     setBonusUnlocked(sessionStorage.getItem("konami-unlocked") === "true");
+    setGameUnlocked(sessionStorage.getItem("game-unlocked") === "true");
   }, []);
 
   return (
@@ -52,14 +54,28 @@ export function ChapterSidebar({
             {bonusUnlocked && (
               <li>
                 <Link
-                  href="/end-of-line/"
+                  href="/for-the-users/"
                   className={
-                    currentSlug === "end-of-line"
+                    currentSlug === "for-the-users"
                       ? "text-accent font-medium italic"
                       : "text-foreground-subtle hover:text-accent italic"
                   }
                 >
-                  12. End of Line
+                  12. For the Users
+                </Link>
+              </li>
+            )}
+            {gameUnlocked && (
+              <li>
+                <Link
+                  href="/full-access/"
+                  className={
+                    currentSlug === "full-access"
+                      ? "text-accent font-medium italic"
+                      : "text-foreground-subtle hover:text-accent italic"
+                  }
+                >
+                  13. Full Access
                 </Link>
               </li>
             )}
