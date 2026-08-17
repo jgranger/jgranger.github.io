@@ -115,12 +115,13 @@
     box-shadow: 0 0 20px 0 color-mix(in oklab, var(--accent-magenta) 6%, transparent);
   }
 
-  /* Homepage hero atmosphere: a blue-to-purple gradient wash plus a
+  /* Shared Tron atmosphere: a blue-to-purple gradient wash plus a
      pre-drawn perspective grid image (public/hero-grid.svg). Plain CSS
      background-image — it can never intercept a click, and doesn't need
-     any z-index/transform/percentage-height tricks to render correctly. */
-  .hero-grid {
-    min-height: 28rem;
+     any z-index/transform/percentage-height tricks to render correctly.
+     Used on the homepage hero (.hero-grid) and the site header, so the
+     background properties are split out from the hero's own min-height. */
+  .tron-grid-bg {
     background-image:
       linear-gradient(
         135deg,
@@ -131,6 +132,9 @@
     background-repeat: no-repeat, no-repeat;
     background-size: cover, 100% 55%;
     background-position: center, bottom center;
+  }
+  .hero-grid {
+    min-height: 28rem;
   }
 }
 
