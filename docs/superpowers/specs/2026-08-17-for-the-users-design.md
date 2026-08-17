@@ -91,18 +91,20 @@ to hand-roll and keeps the site dependency-free, consistent with every
 other atmosphere effect on the site so far.
 
 **Sink logic:** the hole has a capture radius, and — matching the Zany
-Golf mouse-hole reference — its "eyes" blink lit/dark on a fixed cycle.
-The ball sinks only if it arrives within the capture radius *while lit*
-and *below* a max-sink speed; arriving too fast, or during a dark
-window, bounces the ball off the rim instead of sinking. So landing the
-shot requires aim, power, and timing together, not just proximity.
+Golf mouse-hole reference — its eyes are white by default and pulse red
+on a fixed cycle. The ball sinks only if it arrives within the capture
+radius *while the eyes are red* and *below* a max-sink speed; arriving
+too fast, or while the eyes are white, bounces the ball off the rim
+instead of sinking. So landing the shot requires aim, power, and timing
+together, not just proximity.
 
 **Miss handling:** once the ball's speed decays near zero without
 sinking, it auto-resets to the tee after a brief pause. Infinite
 retries, no counter, no penalty — low-stakes by design.
 
-**Win state:** a sink animation (glow burst in the site's accent
-colors, bouncy settle), then a "Continue to Full Access" link appears.
+**Win state:** the flag pin above the hole sinks down together with the
+ball, both fading out in sync (matching the actual Zany Golf win
+animation), then a "Continue to Full Access" link appears.
 
 ### 5. Unlocking "Full Access"
 

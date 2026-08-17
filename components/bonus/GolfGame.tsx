@@ -22,6 +22,7 @@ const RESET_DELAY_MS = 700;
 // off instead of sinking, so timing matters as much as aim and power.
 const HOLE_BLINK_PERIOD_MS = 1800;
 const HOLE_LIT_DURATION_MS = 500;
+const SINK_ANIMATION_MS = 800;
 
 const TEE = { x: 90, y: HEIGHT - 60 };
 const HOLE = { x: WIDTH - 90, y: 70 };
@@ -39,6 +40,7 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
   const dragging = useRef(false);
   const dragPoint = useRef({ x: TEE.x, y: TEE.y });
   const sunk = useRef(false);
+  const sunkAt = useRef(0);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -140,17 +142,21 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         }
 
         const distToHole = Math.hypot(b.x - HOLE.x, b.y - HOLE.y);
-        const collisionRadius = HOLE_CAPTURE_RADIUS + BALL_RADIUS * 0.4;
+        // Both checks share the same radius — the sink check must get
+        // first refusal exactly where the ball actually enters the hole,
+        // not at some larger outer radius the ball would bounce off of
+        // before ever reaching the real capture zone.
         if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) < MAX_SINK_SPEED && lit) {
           sunk.current = true;
+          sunkAt.current = now;
           onWin();
-        } else if (distToHole < collisionRadius && speed(b) > 0.01) {
+        } else if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) > 0.01) {
           // Close enough to sink, but the hole isn't lit (bad timing) or
           // the ball is moving too fast — bounce off the rim instead.
           const nx = (b.x - HOLE.x) / (distToHole || 1);
           const ny = (b.y - HOLE.y) / (distToHole || 1);
-          b.x = HOLE.x + nx * collisionRadius;
-          b.y = HOLE.y + ny * collisionRadius;
+          b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
+          b.y = HOLE.y + ny * HOLE_CAPTURE_RADIUS;
           const dot = b.vx * nx + b.vy * ny;
           b.vx = (b.vx - 2 * dot * nx) * 0.7;
           b.vy = (b.vy - 2 * dot * ny) * 0.7;
@@ -161,11 +167,67 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         }
       }
 
-      draw(ctx, lit);
+      draw(ctx, lit, now);
       frame = requestAnimationFrame(step);
     }
 
-    function draw(context: CanvasRenderingContext2D, lit: boolean) {
+    // Decorative pipe segments, purely cosmetic — the industrial-machinery
+    // energy from the reference, drawn in the site's own steel/cyan tones
+    // rather than copied wholesale.
+    function drawPipe(
+      context: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      length: number,
+      vertical: boolean
+    ) {
+      context.save();
+      context.strokeStyle = "rgba(148, 163, 184, 0.35)";
+      context.lineWidth = 8;
+      context.lineCap = "round";
+      context.beginPath();
+      if (vertical) {
+        context.moveTo(x, y);
+        context.lineTo(x, y + length);
+      } else {
+        context.moveTo(x, y);
+        context.lineTo(x + length, y);
+      }
+      context.stroke();
+      context.strokeStyle = "rgba(226, 232, 240, 0.15)";
+      context.lineWidth = 2;
+      context.stroke();
+      context.restore();
+    }
+
+    // Ambient glow orbs (the reference's floating purple energy rings),
+    // decorative only, gently pulsing.
+    function drawOrb(
+      context: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      color: string,
+      now: number,
+      phase: number
+    ) {
+      const pulse = 0.6 + 0.4 * Math.sin(now / 500 + phase);
+      context.save();
+      context.globalAlpha = 0.25 + 0.25 * pulse;
+      context.beginPath();
+      context.arc(x, y, 7, 0, Math.PI * 2);
+      context.strokeStyle = color;
+      context.lineWidth = 2;
+      context.shadowColor = color;
+      context.shadowBlur = 8 * pulse;
+      context.stroke();
+      context.restore();
+    }
+
+    function draw(
+      context: CanvasRenderingContext2D,
+      lit: boolean,
+      now: number
+    ) {
       context.clearRect(0, 0, WIDTH, HEIGHT);
       context.fillStyle = "#05070d";
       context.fillRect(0, 0, WIDTH, HEIGHT);
@@ -186,33 +248,68 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.stroke();
       }
 
-      // Hole — a pair of eyes blink lit/dark on a cycle; the ball only
-      // sinks while they're lit.
+      // Background dressing: pipes along the edges, ambient orbs scattered
+      // through the scene — all decorative, none of it interactive.
+      drawPipe(context, 20, 16, WIDTH - 40, false);
+      drawPipe(context, WIDTH - 24, 30, HEIGHT - 60, true);
+      drawOrb(context, 130, 100, "#a78bfa", now, 0);
+      drawOrb(context, WIDTH - 160, 260, "#ec4899", now, 1.4);
+      drawOrb(context, 280, HEIGHT - 50, "#a78bfa", now, 2.6);
+
+      // Sink animation progress (0 = just sunk, 1 = fully settled/hidden).
+      const sinkProgress = sunk.current
+        ? Math.min(1, (now - sunkAt.current) / SINK_ANIMATION_MS)
+        : 0;
+
+      // Hole — understated rather than a bold ring (the mouse hole barely
+      // reads against the scene in the reference too). Eyes are white by
+      // default and pulse red on the accept window; the ball only sinks
+      // while they're red.
       context.beginPath();
       context.arc(HOLE.x, HOLE.y, HOLE_RADIUS, 0, Math.PI * 2);
       context.fillStyle = "#0b1220";
       context.fill();
-      context.strokeStyle = "#a78bfa";
-      context.lineWidth = 2;
+      context.strokeStyle = "rgba(167, 139, 250, 0.4)";
+      context.lineWidth = 1.5;
       context.stroke();
-      context.shadowColor = "#a78bfa";
-      context.shadowBlur = 14;
-      context.stroke();
-      context.shadowBlur = 0;
 
-      const eyeColor = lit ? "#fde68a" : "rgba(253, 230, 138, 0.25)";
-      const eyeOffset = 6;
-      context.fillStyle = eyeColor;
-      if (lit) {
-        context.shadowColor = "#fde68a";
-        context.shadowBlur = 10;
+      if (sinkProgress < 1) {
+        const eyeColor = lit ? "#ef4444" : "rgba(232, 238, 245, 0.7)";
+        const eyeOffset = 6;
+        context.fillStyle = eyeColor;
+        if (lit) {
+          context.shadowColor = "#ef4444";
+          context.shadowBlur = 10;
+        }
+        for (const dx of [-eyeOffset, eyeOffset]) {
+          context.beginPath();
+          context.arc(HOLE.x + dx, HOLE.y - 2, 2.5, 0, Math.PI * 2);
+          context.fill();
+        }
+        context.shadowBlur = 0;
       }
-      for (const dx of [-eyeOffset, eyeOffset]) {
-        context.beginPath();
-        context.arc(HOLE.x + dx, HOLE.y - 2, 2.5, 0, Math.PI * 2);
-        context.fill();
-      }
-      context.shadowBlur = 0;
+
+      // Flag pin above the hole — sinks down with the ball on a
+      // successful shot, both fading out together.
+      const flagBaseY = HOLE.y - HOLE_RADIUS - 4;
+      const flagDrop = sunk.current ? sinkProgress * 34 : 0;
+      const flagOpacity = sunk.current ? 1 - sinkProgress : 1;
+      context.save();
+      context.globalAlpha = flagOpacity;
+      context.strokeStyle = "#e8eef5";
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(HOLE.x, flagBaseY + flagDrop);
+      context.lineTo(HOLE.x, flagBaseY - 26 + flagDrop);
+      context.stroke();
+      context.beginPath();
+      context.moveTo(HOLE.x, flagBaseY - 26 + flagDrop);
+      context.lineTo(HOLE.x + 14, flagBaseY - 21 + flagDrop);
+      context.lineTo(HOLE.x, flagBaseY - 16 + flagDrop);
+      context.closePath();
+      context.fillStyle = "#ef4444";
+      context.fill();
+      context.restore();
 
       // Aim line while dragging.
       if (dragging.current) {
@@ -227,16 +324,21 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.setLineDash([]);
       }
 
-      // Ball — shrinks out once sunk, for a small win flourish.
+      // Ball — drops into the hole and fades out with the flag on a win,
+      // instead of just vanishing.
       const b = ball.current;
-      const radius = sunk.current ? Math.max(0, BALL_RADIUS - 6) : BALL_RADIUS;
-      context.beginPath();
-      context.arc(b.x, b.y, radius, 0, Math.PI * 2);
-      context.fillStyle = "#e8eef5";
-      context.shadowColor = "#22d3ee";
-      context.shadowBlur = 10;
-      context.fill();
-      context.shadowBlur = 0;
+      if (sinkProgress < 1) {
+        context.save();
+        context.globalAlpha = sunk.current ? 1 - sinkProgress * 0.7 : 1;
+        const dropY = sunk.current ? b.y + sinkProgress * 10 : b.y;
+        context.beginPath();
+        context.arc(b.x, dropY, BALL_RADIUS, 0, Math.PI * 2);
+        context.fillStyle = "#e8eef5";
+        context.shadowColor = "#22d3ee";
+        context.shadowBlur = 10;
+        context.fill();
+        context.restore();
+      }
     }
 
     frame = requestAnimationFrame(step);
@@ -254,8 +356,8 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
   return (
     <div className="mt-8">
       <p className="text-p2 text-foreground-subtle mb-3">
-        Grab the ball, pull back, and let go. The hole only opens when
-        its eyes light up — time it right.
+        Grab the ball, pull back, and let go. The hole's eyes are white
+        until they turn red — land it while they're red.
       </p>
       <canvas
         ref={canvasRef}
