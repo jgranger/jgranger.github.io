@@ -130,7 +130,11 @@
       ),
       url("/hero-grid.svg");
     background-repeat: no-repeat, no-repeat;
-    background-size: cover, 100% 55%;
+    /* Fixed pixel height (not a percentage) for the grid layer: it's
+       anchored to the bottom edge and clipped by whatever box height is
+       available, so it reads the same in a tall hero and a short header
+       instead of being stretched/squashed to fit each one differently. */
+    background-size: cover, 100% 220px;
     background-position: center, bottom center;
   }
   .hero-grid {
