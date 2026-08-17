@@ -80,9 +80,6 @@ export default async function ChapterPage({
         <ChapterNavigation headings={headings} />
         <article className="prose prose-invert mt-8">{body}</article>
         <PrevNextNav adjacent={adjacent} />
-        <a href="/contents/" className="block mt-8 text-p2 text-accent">
-          ← Return to Table of Contents
-        </a>
       </main>
     </div>
   );
