@@ -24,7 +24,7 @@ export default async function EndOfLinePage() {
       <header className="mb-10">
         <h1 className="text-h1 mt-2">{data.title}</h1>
       </header>
-      <article className="prose mt-8">{body}</article>
+      <article className="prose prose-invert mt-8">{body}</article>
     </main>
   );
 }

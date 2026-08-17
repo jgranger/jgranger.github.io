@@ -1,8 +1,6 @@
-import path from "node:path";
 import { getTableOfContents } from "@/lib/content";
 import { TableOfContents } from "@/components/publication/TableOfContents";
-
-const CONTENT_DIR = path.join(process.cwd(), "content/book");
+import { CONTENT_DIR } from "@/lib/contentDir";
 
 export default function ContentsPage() {
   const parts = getTableOfContents(CONTENT_DIR);

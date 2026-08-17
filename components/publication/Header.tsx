@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Header() {
   return (
-    <header className="flex items-center justify-between px-4 py-6 max-w-(--width-wide) mx-auto">
+    <header className="flex items-center justify-between px-4 py-6 max-w-(--width-wide) mx-auto border-b border-border">
       <Link href="/" className="text-h6 font-heading">
         Agentic Journey
       </Link>
