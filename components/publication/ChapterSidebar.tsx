@@ -59,7 +59,7 @@ export function ChapterSidebar({
                       : "text-foreground-subtle hover:text-accent italic"
                   }
                 >
-                  End of Line
+                  12. End of Line
                 </Link>
               </li>
             )}
