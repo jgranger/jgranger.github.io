@@ -122,6 +122,10 @@
   .hero-grid {
     position: relative;
     overflow: hidden;
+    /* Percentage heights on the absolutely-positioned decoration below
+       only resolve against a definite height — content-driven "auto"
+       height on this section isn't enough, so it's pinned explicitly. */
+    min-height: 32rem;
   }
   .hero-grid::before {
     content: "";
