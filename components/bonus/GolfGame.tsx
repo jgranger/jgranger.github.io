@@ -27,6 +27,24 @@ const SINK_ANIMATION_MS = 800;
 const TEE = { x: 90, y: HEIGHT - 60 };
 const HOLE = { x: WIDTH - 90, y: 70 };
 
+// Isometric projection applied only at draw/input time — physics still
+// simulate on the plain flat plane above (unchanged, already-tuned
+// friction/bounce/capture math), and this shear+scale matrix is what
+// makes that flat plane render as a tilted isometric floor, matching
+// the real game's look instead of a flat top-down grid.
+const ISO_K = 0.5;
+const ISO_OFFSET_X = 240;
+const ISO_OFFSET_Y = 40;
+
+function toLogical(sx: number, sy: number): { x: number; y: number } {
+  const dx = sx - ISO_OFFSET_X;
+  const dy = sy - ISO_OFFSET_Y;
+  return {
+    x: (dx / ISO_K + 2 * (dy / ISO_K)) / 2,
+    y: (2 * (dy / ISO_K) - dx / ISO_K) / 2,
+  };
+}
+
 interface BallState {
   x: number;
   y: number;
@@ -59,10 +77,12 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
 
     function pointerPos(event: PointerEvent): { x: number; y: number } {
       const rect = canvas!.getBoundingClientRect();
-      return {
-        x: ((event.clientX - rect.left) / rect.width) * WIDTH,
-        y: ((event.clientY - rect.top) / rect.height) * HEIGHT,
-      };
+      const canvasX = ((event.clientX - rect.left) / rect.width) * WIDTH;
+      const canvasY = ((event.clientY - rect.top) / rect.height) * HEIGHT;
+      // The scene renders through the isometric transform, so pointer
+      // input has to go through its inverse to land back in the same
+      // flat logical space the ball's physics actually live in.
+      return toLogical(canvasX, canvasY);
     }
 
     function speed(b: BallState): number {
@@ -228,20 +248,38 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       lit: boolean,
       now: number
     ) {
+      context.setTransform(1, 0, 0, 1, 0, 0);
       context.clearRect(0, 0, WIDTH, HEIGHT);
       context.fillStyle = "#05070d";
       context.fillRect(0, 0, WIDTH, HEIGHT);
 
-      // Course grid, in the site's own palette.
-      context.strokeStyle = "rgba(34, 211, 238, 0.18)";
+      // Everything below renders through the isometric shear so the flat
+      // physics plane above reads as a tilted floor, like the real game.
+      context.save();
+      context.transform(ISO_K, ISO_K / 2, -ISO_K, ISO_K / 2, ISO_OFFSET_X, ISO_OFFSET_Y);
+
+      // Floor — a filled tile checker in muted steel/maroon tones (the
+      // reference's palette), not the site's own cyan.
+      context.fillStyle = "#2a2230";
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+      const TILE = 30;
+      for (let ty = 0; ty < HEIGHT; ty += TILE) {
+        for (let tx = 0; tx < WIDTH; tx += TILE) {
+          if (((tx / TILE) + (ty / TILE)) % 2 === 0) {
+            context.fillStyle = "rgba(255, 255, 255, 0.035)";
+            context.fillRect(tx, ty, TILE, TILE);
+          }
+        }
+      }
+      context.strokeStyle = "rgba(255, 255, 255, 0.08)";
       context.lineWidth = 1;
-      for (let x = 0; x <= WIDTH; x += 30) {
+      for (let x = 0; x <= WIDTH; x += TILE) {
         context.beginPath();
         context.moveTo(x, 0);
         context.lineTo(x, HEIGHT);
         context.stroke();
       }
-      for (let y = 0; y <= HEIGHT; y += 30) {
+      for (let y = 0; y <= HEIGHT; y += TILE) {
         context.beginPath();
         context.moveTo(0, y);
         context.lineTo(WIDTH, y);
@@ -339,6 +377,8 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.fill();
         context.restore();
       }
+
+      context.restore();
     }
 
     frame = requestAnimationFrame(step);
@@ -355,10 +395,6 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
 
   return (
     <div className="mt-8">
-      <p className="text-p2 text-foreground-subtle mb-3">
-        Grab the ball, pull back, and let go. The hole's eyes are white
-        until they turn red — land it while they're red.
-      </p>
       <canvas
         ref={canvasRef}
         width={WIDTH}
