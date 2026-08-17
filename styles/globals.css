@@ -117,11 +117,13 @@
 
   /* Shared Tron atmosphere: a blue-to-purple gradient wash plus Jon's
      perspective grid image (public/hero-grid.png). Plain CSS
-     background-image — it can never intercept a click, and doesn't need
-     any z-index/transform/percentage-height tricks to render correctly.
-     Used on the homepage hero (.hero-grid) and the site header, so the
-     background properties are split out from the hero's own min-height. */
-  .tron-grid-bg {
+     background-image — it can never intercept a click. Hero and header
+     use different background-size for the grid layer: the hero has real
+     height to work with (crop to a fixed slice, bottom-anchored), while
+     the header is short enough that cropping hides most of the image, so
+     it stretches to show the image in full instead. */
+  .hero-grid {
+    min-height: 28rem;
     background-image:
       linear-gradient(
         135deg,
@@ -130,15 +132,20 @@
       ),
       url("/hero-grid.png");
     background-repeat: no-repeat, no-repeat;
-    /* Fixed pixel height (not a percentage) for the grid layer: it's
-       anchored to the bottom edge and clipped by whatever box height is
-       available, so it reads the same in a tall hero and a short header
-       instead of being stretched/squashed to fit each one differently. */
     background-size: cover, 100% 220px;
     background-position: center, bottom center;
   }
-  .hero-grid {
-    min-height: 28rem;
+  .header-grid {
+    background-image:
+      linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--accent-cyan) 15%, transparent),
+        color-mix(in oklab, var(--accent-violet) 15%, transparent)
+      ),
+      url("/hero-grid.png");
+    background-repeat: no-repeat, no-repeat;
+    background-size: cover, 100% 100%;
+    background-position: center, center;
   }
 }
 
