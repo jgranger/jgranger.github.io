@@ -90,11 +90,12 @@ damping factor on impact. No physics library — this is simple enough
 to hand-roll and keeps the site dependency-free, consistent with every
 other atmosphere effect on the site so far.
 
-**Sink logic:** the hole has a capture radius. The ball sinks only if
-it passes within that radius while its speed is *below* a max-sink
-threshold — too much power rolls past the hole, too little never
-reaches it, so landing the shot requires the aim/power combination
-"just right," matching the timing-sensitive feel described.
+**Sink logic:** the hole has a capture radius, and — matching the Zany
+Golf mouse-hole reference — its "eyes" blink lit/dark on a fixed cycle.
+The ball sinks only if it arrives within the capture radius *while lit*
+and *below* a max-sink speed; arriving too fast, or during a dark
+window, bounces the ball off the rim instead of sinking. So landing the
+shot requires aim, power, and timing together, not just proximity.
 
 **Miss handling:** once the ball's speed decays near zero without
 sinking, it auto-resets to the tee after a brief pause. Infinite
