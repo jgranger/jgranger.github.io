@@ -7,3 +7,12 @@ tsconfig.tsbuildinfo
 
 # Local-only writing/ideas — never public, structure-only stays in docs/
 docs/private/
+
+# Local-only content preview, generated from docs/private/chapters/ —
+# never committed, so real chapter prose can never end up in this public
+# repo by accident. See scripts/sync-preview-content.mjs.
+content/book-preview/
+public/preview-images/
+
+# Brainstorming visual-companion scratch files
+.superpowers/
