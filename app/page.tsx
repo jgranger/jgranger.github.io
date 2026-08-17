@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { getTableOfContents } from "@/lib/content";
+import { getTableOfContents, getFlatChapterList } from "@/lib/content";
 import { ContinueReading } from "@/components/publication/ContinueReading";
 import { CONTENT_DIR } from "@/lib/contentDir";
 
 export default function HomePage() {
   const parts = getTableOfContents(CONTENT_DIR);
   const featuredChapters = parts.flatMap((part) => part.chapters).slice(0, 3);
+  const firstChapter = getFlatChapterList(CONTENT_DIR)[0];
 
   return (
     <main className="max-w-(--width-wide) mx-auto px-4 py-16">
@@ -16,12 +17,14 @@ export default function HomePage() {
           one system at a time.
         </p>
         <div className="mt-8 flex gap-4 justify-center">
-          <Link href="/contents/" className="rounded-lg bg-accent text-accent-foreground px-6 py-3 text-p1">
-            Start Reading
-          </Link>
-          <Link href="/contents/" className="rounded-lg border border-border px-6 py-3 text-p1">
-            View Table of Contents
-          </Link>
+          {firstChapter && (
+            <Link
+              href={`/book/${firstChapter.part}/${firstChapter.slug}/`}
+              className="rounded-lg bg-accent text-accent-foreground px-6 py-3 text-p1"
+            >
+              Start Reading
+            </Link>
+          )}
         </div>
         <div className="mt-6">
           <ContinueReading />

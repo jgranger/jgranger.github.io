@@ -7,7 +7,6 @@ export function Header() {
         Agentic Journey
       </Link>
       <nav className="flex gap-6 text-p2">
-        <Link href="/contents/">Contents</Link>
         <Link href="/about/">About</Link>
       </nav>
     </header>
