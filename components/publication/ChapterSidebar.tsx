@@ -51,7 +51,14 @@ export function ChapterSidebar({
             ))}
             {bonusUnlocked && (
               <li>
-                <Link href="/end-of-line/" className="text-foreground-subtle hover:text-accent italic">
+                <Link
+                  href="/end-of-line/"
+                  className={
+                    currentSlug === "end-of-line"
+                      ? "text-accent font-medium italic"
+                      : "text-foreground-subtle hover:text-accent italic"
+                  }
+                >
                   End of Line
                 </Link>
               </li>
