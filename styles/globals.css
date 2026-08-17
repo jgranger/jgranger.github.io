@@ -115,8 +115,8 @@
     box-shadow: 0 0 20px 0 color-mix(in oklab, var(--accent-magenta) 6%, transparent);
   }
 
-  /* Shared Tron atmosphere: a blue-to-purple gradient wash plus a
-     pre-drawn perspective grid image (public/hero-grid.svg). Plain CSS
+  /* Shared Tron atmosphere: a blue-to-purple gradient wash plus Jon's
+     perspective grid image (public/hero-grid.png). Plain CSS
      background-image — it can never intercept a click, and doesn't need
      any z-index/transform/percentage-height tricks to render correctly.
      Used on the homepage hero (.hero-grid) and the site header, so the
@@ -128,7 +128,7 @@
         color-mix(in oklab, var(--accent-cyan) 15%, transparent),
         color-mix(in oklab, var(--accent-violet) 15%, transparent)
       ),
-      url("/hero-grid.svg");
+      url("/hero-grid.png");
     background-repeat: no-repeat, no-repeat;
     /* Fixed pixel height (not a percentage) for the grid layer: it's
        anchored to the bottom edge and clipped by whatever box height is
