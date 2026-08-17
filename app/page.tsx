@@ -1,9 +1,7 @@
-import path from "node:path";
 import Link from "next/link";
 import { getTableOfContents } from "@/lib/content";
 import { ContinueReading } from "@/components/publication/ContinueReading";
-
-const CONTENT_DIR = path.join(process.cwd(), "content/book");
+import { CONTENT_DIR } from "@/lib/contentDir";
 
 export default function HomePage() {
   const parts = getTableOfContents(CONTENT_DIR);

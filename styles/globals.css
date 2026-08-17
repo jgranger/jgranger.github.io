@@ -1,20 +1,16 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-@import "@fontsource-variable/outfit";
-@import "@fontsource-variable/work-sans";
+@import "@fontsource-variable/fraunces";
+@import "@fontsource-variable/public-sans";
 
 @theme inline {
-  --font-sans: "Work Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Outfit Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Public Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Fraunces Variable", ui-serif, Georgia, serif;
 
-  --color-coral: var(--brand-coral-500);
-  --color-coral-foreground: var(--coral-foreground);
-  --color-crimson: var(--brand-crimson-500);
-  --color-crimson-700: var(--brand-crimson-700);
-  --color-crimson-foreground: var(--crimson-foreground);
-  --color-night-sky: var(--brand-night-sky);
-  --color-periwinkle: var(--brand-periwinkle);
-  --color-parchment: var(--brand-parchment);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-violet: var(--accent-violet);
+  --color-accent-magenta: var(--accent-magenta);
+  --color-background-elevated: var(--background-elevated);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -60,44 +56,31 @@
   --width-wide: 64rem;
 }
 
+/*
+ * Tron dark theme — see docs/superpowers/specs/2026-08-17-tron-dark-theme-design.md
+ * This is the site's only theme (no light mode, no toggle): Jon's personal
+ * book, not a momoGood-branded property, so the old brand palette is fully
+ * retired rather than kept as a light-mode fallback.
+ */
 :root {
-  --brand-coral-500: #fc5c50;
-  --brand-crimson-500: #a4275e;
-  --brand-crimson-700: #7e1941;
-  --brand-night-sky: #2d2c3e;
-  --brand-periwinkle: #baccfa;
-  --brand-parchment: #f3f2e6;
-  --brand-pure-white: #ffffff;
+  --accent-cyan: #22d3ee;
+  --accent-violet: #a78bfa;
+  --accent-magenta: #ec4899;
 
-  --background: var(--brand-pure-white);
-  --foreground: var(--brand-night-sky);
-  --foreground-secondary: color-mix(in oklab, var(--foreground) 75%, transparent);
-  --foreground-subtle: color-mix(in oklab, var(--foreground) 55%, transparent);
-  --muted: var(--brand-parchment);
-  --muted-foreground: color-mix(in oklab, var(--brand-night-sky) 65%, transparent);
-  --accent: var(--brand-crimson-500);
-  --accent-foreground: var(--brand-pure-white);
-  --border: color-mix(in oklab, var(--brand-night-sky) 12%, transparent);
-  --ring: color-mix(in oklab, var(--brand-coral-500) 60%, transparent);
-  --coral-foreground: var(--brand-night-sky);
-  --crimson-foreground: var(--brand-parchment);
+  --background: #05070d;
+  --background-elevated: #0b1220;
+  --foreground: #e8eef5;
+  --foreground-secondary: #c7d2de;
+  --foreground-subtle: #8a9bb0;
+
+  --muted: var(--background-elevated);
+  --muted-foreground: var(--foreground-subtle);
+  --accent: var(--accent-cyan);
+  --accent-foreground: var(--background);
+  --border: color-mix(in oklab, var(--accent-cyan) 25%, transparent);
+  --ring: color-mix(in oklab, var(--accent-cyan) 60%, transparent);
 
   --radius: 0.75rem;
-}
-
-.dark {
-  --background: var(--brand-night-sky);
-  --foreground: var(--brand-parchment);
-  --foreground-secondary: color-mix(in oklab, var(--foreground) 75%, transparent);
-  --foreground-subtle: color-mix(in oklab, var(--foreground) 55%, transparent);
-  --muted: #3a3950;
-  --muted-foreground: color-mix(in oklab, var(--brand-parchment) 70%, transparent);
-  --accent: var(--brand-crimson-500);
-  --accent-foreground: var(--brand-parchment);
-  --border: color-mix(in oklab, var(--brand-parchment) 12%, transparent);
-  --ring: color-mix(in oklab, var(--brand-coral-500) 60%, transparent);
-  --coral-foreground: var(--brand-night-sky);
-  --crimson-foreground: var(--brand-parchment);
 }
 
 @layer utilities {
@@ -113,10 +96,38 @@
   .text-p2 { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-p2); line-height: var(--text-p2--line-height); }
   .text-small { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-small); line-height: var(--text-small--line-height); }
   .text-eyebrow { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-eyebrow); line-height: var(--text-eyebrow--line-height); letter-spacing: var(--text-eyebrow--letter-spacing); text-transform: uppercase; }
+
+  /* Rotating accent for card borders + glow — decorative rhythm across a
+     list (e.g. table of contents), not a semantic color code. Cycle
+     cyan -> violet -> magenta via nth-child in the consuming component. */
+  .glow-card {
+    background: var(--color-background-elevated);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: 0 0 20px 0 color-mix(in oklab, var(--accent-cyan) 8%, transparent);
+  }
+  .glow-card--violet {
+    border-color: color-mix(in oklab, var(--accent-violet) 30%, transparent);
+    box-shadow: 0 0 20px 0 color-mix(in oklab, var(--accent-violet) 8%, transparent);
+  }
+  .glow-card--magenta {
+    border-color: color-mix(in oklab, var(--accent-magenta) 25%, transparent);
+    box-shadow: 0 0 20px 0 color-mix(in oklab, var(--accent-magenta) 6%, transparent);
+  }
 }
 
 @layer base {
   html { font-family: var(--font-sans); }
   body { background: var(--color-background); color: var(--color-foreground); }
   h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 600; }
+
+  /* Screenshots/figures embedded in chapter prose get the same glowing
+     frame as other cards, instead of a bare image on the dark background. */
+  .prose img {
+    background: var(--color-background-elevated);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: 0 0 24px 0 color-mix(in oklab, var(--accent-cyan) 8%, transparent);
+    padding: 0.5rem;
+  }
 }

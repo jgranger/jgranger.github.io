@@ -1,4 +1,3 @@
-import path from "node:path";
 import { notFound } from "next/navigation";
 import {
   getPublishedChapters,
@@ -22,8 +21,7 @@ import { VideoEmbed } from "@/components/media/VideoEmbed";
 import { MermaidDiagram } from "@/components/diagrams/MermaidDiagram";
 import { AnimatedFlow } from "@/components/diagrams/AnimatedFlow";
 import { askProductFlow } from "@/content/diagrams/ask-product-flow";
-
-const CONTENT_DIR = path.join(process.cwd(), "content/book");
+import { CONTENT_DIR } from "@/lib/contentDir";
 
 const MDX_COMPONENTS = {
   Callout,
@@ -75,7 +73,7 @@ export default async function ChapterPage({
         summary={chapter.meta.summary}
       />
       <ChapterNavigation headings={headings} />
-      <article className="prose mt-8">{body}</article>
+      <article className="prose prose-invert mt-8">{body}</article>
       <PrevNextNav adjacent={adjacent} />
       <a href="/contents/" className="block mt-8 text-p2 text-accent">
         ← Return to Table of Contents

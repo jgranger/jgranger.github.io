@@ -6,10 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "test": "vitest run",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "preview:sync": "node scripts/sync-preview-content.mjs",
+    "preview": "npm run preview:sync && PREVIEW_CONTENT_DIR=content/book-preview next dev"
   },
   "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
     "@fontsource-variable/outfit": "^5.1.0",
+    "@fontsource-variable/public-sans": "^5.3.0",
     "@fontsource-variable/work-sans": "^5.1.0",
     "@mdx-js/react": "^3.1.0",
     "gray-matter": "^4.0.3",
