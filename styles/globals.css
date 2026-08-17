@@ -52,8 +52,8 @@
   --text-eyebrow--line-height: clamp(0.75rem, 0.71rem + 0.19vw, 0.875rem);
   --text-eyebrow--letter-spacing: 0.0625rem;
 
-  --width-reading: 42rem;
-  --width-wide: 64rem;
+  --width-reading: 52rem;
+  --width-wide: 72rem;
 }
 
 /*
