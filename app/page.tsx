@@ -10,7 +10,7 @@ export default function HomePage() {
 
   return (
     <main className="max-w-(--width-wide) mx-auto px-4 py-16">
-      <section className="hero-grid flex flex-col items-center justify-center text-center py-20">
+      <section className="tron-grid-bg hero-grid flex flex-col items-center justify-center text-center py-20">
         <h1 className="text-h1">Agentic Journey</h1>
         <p className="text-lead text-foreground-secondary mt-4 max-w-(--width-reading) mx-auto">
           An interactive book about building an agentic development platform —
