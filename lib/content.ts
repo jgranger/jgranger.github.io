@@ -92,6 +92,10 @@ export function getTableOfContents(contentDir: string): TocPart[] {
   }));
 }
 
+export function getFlatChapterList(contentDir: string): TocEntry[] {
+  return getPublishedChapters(contentDir).map(toTocEntry);
+}
+
 export function getAdjacentChapters(
   contentDir: string,
   slug: string

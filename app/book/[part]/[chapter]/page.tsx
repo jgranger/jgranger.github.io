@@ -3,7 +3,9 @@ import {
   getPublishedChapters,
   getChapterBySlug,
   getAdjacentChapters,
+  getFlatChapterList,
 } from "@/lib/content";
+import { ChapterSidebar } from "@/components/publication/ChapterSidebar";
 import { extractHeadings } from "@/lib/headings";
 import { renderMdx } from "@/lib/mdx";
 import { ChapterHeader } from "@/components/publication/ChapterHeader";
@@ -56,28 +58,32 @@ export default async function ChapterPage({
 
   const headings = extractHeadings(chapter.content);
   const adjacent = getAdjacentChapters(CONTENT_DIR, slug);
+  const chapters = getFlatChapterList(CONTENT_DIR);
   const body = await renderMdx(chapter.content, MDX_COMPONENTS);
 
   return (
-    <main className="max-w-(--width-reading) mx-auto px-4 py-16">
-      <ChapterProgress />
-      <RecordVisit
-        title={chapter.meta.title}
-        part={chapter.meta.part}
-        slug={chapter.meta.slug}
-      />
-      <ChapterHeader
-        partTitle={chapter.meta.partTitle}
-        chapterNumber={chapter.meta.chapterNumber}
-        title={chapter.meta.title}
-        summary={chapter.meta.summary}
-      />
-      <ChapterNavigation headings={headings} />
-      <article className="prose prose-invert mt-8">{body}</article>
-      <PrevNextNav adjacent={adjacent} />
-      <a href="/contents/" className="block mt-8 text-p2 text-accent">
-        ← Return to Table of Contents
-      </a>
-    </main>
+    <div className="max-w-(--width-wide) mx-auto px-4 py-16 flex flex-col lg:flex-row lg:gap-12">
+      <ChapterSidebar chapters={chapters} currentSlug={slug} />
+      <main className="max-w-(--width-reading) w-full">
+        <ChapterProgress />
+        <RecordVisit
+          title={chapter.meta.title}
+          part={chapter.meta.part}
+          slug={chapter.meta.slug}
+        />
+        <ChapterHeader
+          partTitle={chapter.meta.partTitle}
+          chapterNumber={chapter.meta.chapterNumber}
+          title={chapter.meta.title}
+          summary={chapter.meta.summary}
+        />
+        <ChapterNavigation headings={headings} />
+        <article className="prose prose-invert mt-8">{body}</article>
+        <PrevNextNav adjacent={adjacent} />
+        <a href="/contents/" className="block mt-8 text-p2 text-accent">
+          ← Return to Table of Contents
+        </a>
+      </main>
+    </div>
   );
 }
