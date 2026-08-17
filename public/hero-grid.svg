@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400">
+  <defs>
+    <linearGradient id="fade" gradientUnits="userSpaceOnUse" x1="0" y1="400" x2="0" y2="0">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <g stroke="url(#fade)" stroke-width="2" fill="none">
+    <line x1="0" y1="400" x2="500" y2="0" />
+    <line x1="125" y1="400" x2="500" y2="0" />
+    <line x1="250" y1="400" x2="500" y2="0" />
+    <line x1="375" y1="400" x2="500" y2="0" />
+    <line x1="500" y1="400" x2="500" y2="0" />
+    <line x1="625" y1="400" x2="500" y2="0" />
+    <line x1="750" y1="400" x2="500" y2="0" />
+    <line x1="875" y1="400" x2="500" y2="0" />
+    <line x1="1000" y1="400" x2="500" y2="0" />
+
+    <line x1="0" y1="400" x2="1000" y2="400" />
+    <line x1="100" y1="320" x2="900" y2="320" />
+    <line x1="190" y1="248" x2="810" y2="248" />
+    <line x1="265" y1="188" x2="735" y2="188" />
+    <line x1="330" y1="136" x2="670" y2="136" />
+    <line x1="385" y1="92" x2="615" y2="92" />
+    <line x1="430" y1="56" x2="570" y2="56" />
+  </g>
+</svg>
