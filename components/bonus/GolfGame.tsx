@@ -85,7 +85,7 @@ const OBSTACLES: Obstacle[] = [
   // Raised triangular ramp/platform — a solid block sitting above floor
   // level, not a walkway to anywhere reachable. Missed in the first
   // pass entirely (the ball rolled straight through it).
-  rectObstacle(590, 10, 145, 185),
+  rectObstacle(585, 5, 185, 195),
   rectObstacle(470, 95, 140, 120),
   rectObstacle(750, 55, 290, 150),
   rectObstacle(950, 200, 110, 65),
