@@ -29,9 +29,11 @@ const BOUNDARY_SRC = [
 const BOUNDARY = BOUNDARY_SRC.map(([x, y]) => scaled(x, y));
 
 const INTERIOR_WALL_SRC = [
-  [1000, 150], [1100, 195], [1200, 245],
+  [1000, 150], [1100, 195], [1200, 245], [1300, 295], [1400, 340],
 ];
 const INTERIOR_WALL = INTERIOR_WALL_SRC.map(([x, y]) => scaled(x, y));
+const INTERIOR_WALL_GATE = scaled(1278.7, 284.4);
+const INTERIOR_WALL_GATE_RADIUS = 12;
 
 function circleObstacle(x, y, r) {
   const p = scaled(x, y);
@@ -119,6 +121,7 @@ function resolveBoundary(b) {
   }
 }
 function resolveInteriorWall(b) {
+  if (Math.hypot(b.x - INTERIOR_WALL_GATE.x, b.y - INTERIOR_WALL_GATE.y) < INTERIOR_WALL_GATE_RADIUS) return;
   for (let i = 0; i < INTERIOR_WALL.length - 1; i++) {
     const a = INTERIOR_WALL[i], c = INTERIOR_WALL[i + 1];
     const { dist, cx, cy } = pointSegmentDistance(b.x, b.y, a.x, a.y, c.x, c.y);
@@ -164,7 +167,25 @@ function simulateShot(from, dragPoint, maxFrames = 2000) {
         if (o.kind === "circle") resolveCircle(b, o.x, o.y, o.r);
         else resolveRect(b, o.x, o.y, o.w, o.h);
       }
+
+      // Checked per-substep, matching the real component's fix: a fast
+      // ball can cross the whole capture zone within one frame's worth
+      // of substeps and never register if this only ran once per frame.
+      const distToHole = Math.hypot(b.x - HOLE.x, b.y - HOLE.y);
+      if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) < MAX_SINK_SPEED) {
+        reachedHole = true;
+        break;
+      } else if (distToHole < HOLE_CAPTURE_RADIUS) {
+        const nx = (b.x - HOLE.x) / (distToHole || 1);
+        const ny = (b.y - HOLE.y) / (distToHole || 1);
+        b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
+        b.y = HOLE.y + ny * HOLE_CAPTURE_RADIUS;
+        const dot = b.vx * nx + b.vy * ny;
+        b.vx = (b.vx - 2 * dot * nx) * 0.7;
+        b.vy = (b.vy - 2 * dot * ny) * 0.7;
+      }
     }
+    if (reachedHole) break;
     b.vx *= FRICTION; b.vy *= FRICTION;
 
     minX = Math.min(minX, b.x); maxAbsX = Math.max(maxAbsX, b.x);
@@ -173,21 +194,6 @@ function simulateShot(from, dragPoint, maxFrames = 2000) {
     if (!Number.isFinite(b.x) || !Number.isFinite(b.y) ||
         b.x < -5 || b.x > WIDTH + 5 || b.y < -5 || b.y > HEIGHT + 5) {
       wentOutOfBounds = true;
-    }
-
-    const distToHole = Math.hypot(b.x - HOLE.x, b.y - HOLE.y);
-    if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) < MAX_SINK_SPEED) {
-      reachedHole = true;
-      break;
-    } else if (distToHole < HOLE_CAPTURE_RADIUS) {
-      // Rim bounce, same as the real game.
-      const nx = (b.x - HOLE.x) / (distToHole || 1);
-      const ny = (b.y - HOLE.y) / (distToHole || 1);
-      b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
-      b.y = HOLE.y + ny * HOLE_CAPTURE_RADIUS;
-      const dot = b.vx * nx + b.vy * ny;
-      b.vx = (b.vx - 2 * dot * nx) * 0.7;
-      b.vy = (b.vy - 2 * dot * ny) * 0.7;
     }
   }
 
