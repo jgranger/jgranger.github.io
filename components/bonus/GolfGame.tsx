@@ -89,6 +89,14 @@ const OBSTACLES: Obstacle[] = [
   rectObstacle(470, 95, 140, 120),
   rectObstacle(750, 55, 290, 150),
   rectObstacle(950, 200, 110, 65),
+  // The back strip behind the console, and the pocket right of the
+  // receiver drum near the small arch, are both raised upper-tier
+  // floor with no solid prop actually sealing their front edge — the
+  // ball could wander laterally into either and back out. Traced
+  // directly from Jon's marked-up screenshots. Both stop well clear of
+  // the hole (1395,150), which stays on the lower, reachable tier.
+  rectObstacle(1030, 15, 280, 90),
+  rectObstacle(1370, 200, 280, 125),
   rectObstacle(110, 145, 25, 70),
   rectObstacle(250, 145, 25, 70),
   rectObstacle(400, 335, 25, 65),
