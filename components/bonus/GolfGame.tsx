@@ -42,9 +42,14 @@ const HOLE = scaled(1395, 150);
 // The room's boundary, traced from the artwork's pipe railing — a
 // closed polygon the ball bounces off of like a real wall, not the
 // bare canvas edge.
+// The right side (near the hole) has a genuinely intricate zigzag of
+// pipe notches in the artwork — rather than risk another mismatched
+// straight-line gap trying to trace every jog precisely, this cuts
+// inside it conservatively (a slightly smaller play area, but reliably
+// solid everywhere).
 const BOUNDARY_SRC: [number, number][] = [
-  [230, 95], [600, 15], [770, 15], [1300, 15], [1600, 95],
-  [1650, 195], [1650, 300], [1590, 420], [90, 420], [0, 300], [0, 195],
+  [230, 95], [600, 15], [770, 15], [1300, 15], [1560, 95],
+  [1580, 250], [1580, 300], [1590, 420], [90, 420], [0, 300], [0, 195],
 ];
 const BOUNDARY = BOUNDARY_SRC.map(([x, y]) => scaled(x, y));
 
@@ -134,7 +139,7 @@ const OBSTACLES: Obstacle[] = [
   circleObstacle(1264, 103, 16),
   circleObstacle(1356, 356, 16),
   circleObstacle(1265, 391, 16),
-  circleObstacle(1475, 159, 16),
+  circleObstacle(1500, 195, 16), // moved further from the hole for clearance
 ];
 
 // Turret beam — hidden by default, animates a bright pulse across this
