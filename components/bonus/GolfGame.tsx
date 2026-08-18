@@ -20,7 +20,6 @@ const FRICTION = 0.985;
 const REST_SPEED = 0.1;
 const MAX_PULL = 217;
 const LAUNCH_POWER = 0.11;
-const RESET_DELAY_MS = 700;
 const BOUNCE_DAMPING = 0.72;
 
 // The hole's eyes are white by default and pulse red on a fixed cycle —
@@ -94,8 +93,11 @@ const OBSTACLES: Obstacle[] = [
   rectObstacle(250, 145, 25, 70),
   rectObstacle(400, 335, 25, 65),
   rectObstacle(500, 325, 25, 65),
-  circleObstacle(185, 185, 45),
-  circleObstacle(165, 300, 55),
+  // The raised portal ring near the tee is a solid 3D obstacle; the
+  // second ring right below it is a completely flat floor decal
+  // (walkable, correctly has no collider) — these were originally
+  // mislocated and conflated as two solid obstacles.
+  circleObstacle(165, 320, 75),
   rectObstacle(560, 330, 160, 70),
   circleObstacle(820, 405, 48),
   rectObstacle(1140, 225, 120, 75),
@@ -158,7 +160,6 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
   const sunkAt = useRef(0);
   const exploded = useRef(false);
   const explodedAt = useRef(0);
-  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -201,14 +202,6 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
 
     function resetBall() {
       ball.current = { x: TEE.x, y: TEE.y, vx: 0, vy: 0 };
-    }
-
-    function scheduleReset() {
-      if (resetTimer.current || sunk.current || exploded.current) return;
-      resetTimer.current = setTimeout(() => {
-        resetBall();
-        resetTimer.current = null;
-      }, RESET_DELAY_MS);
     }
 
     function handlePointerDown(event: PointerEvent) {
@@ -368,9 +361,10 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
             b.vx = (b.vx - 2 * dot * nx) * 0.7;
             b.vy = (b.vy - 2 * dot * ny) * 0.7;
           } else if (isResting()) {
+            // Play continues from wherever the ball comes to rest — no
+            // reset to tee on an ordinary miss. Only the laser resets it.
             b.vx = 0;
             b.vy = 0;
-            scheduleReset();
           }
         }
       }
@@ -393,23 +387,11 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.fillRect(0, 0, WIDTH, HEIGHT);
       }
 
-      // Dampen the artwork's baked-in beam to invisible by default —
-      // only let it (and our own bright pulse line) show through while
-      // actively firing.
-      const dx = BEAM_END.x - BEAM_START.x;
-      const dy = BEAM_END.y - BEAM_START.y;
-      const beamLen = Math.hypot(dx, dy);
-      const beamAngle = Math.atan2(dy, dx);
-      const midX = (BEAM_START.x + BEAM_END.x) / 2;
-      const midY = (BEAM_START.y + BEAM_END.y) / 2;
-      context.save();
-      context.translate(midX, midY);
-      context.rotate(beamAngle);
-      context.fillStyle = "#12141d";
-      context.globalAlpha = Math.max(0, 1 - pulse * 1.4);
-      context.fillRect(-beamLen / 2 - 22, -20, beamLen + 44, 40);
-      context.restore();
-
+      // The beam is baked into the artwork itself (both reference
+      // images show it), so it stays faintly visible as ambient scene
+      // detail rather than being masked out — an overlay attempting to
+      // hide/dampen it was unreliable and looked wrong. Only the bright
+      // traveling pulse is animated on top, periodically.
       if (pulse > 0.02) {
         context.save();
         context.globalAlpha = pulse;
@@ -522,7 +504,6 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
       canvas.removeEventListener("pointercancel", handlePointerUp);
-      if (resetTimer.current) clearTimeout(resetTimer.current);
     };
   }, [onWin]);
 
