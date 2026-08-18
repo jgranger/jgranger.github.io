@@ -459,27 +459,14 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.fillRect(0, 0, WIDTH, HEIGHT);
       }
 
-      // Dampen the artwork's baked-in beam to invisible by default — the
-      // ball's tunneling/NaN bug (since fixed with sub-stepped collision
-      // and a defensive position reset) was the far more likely cause of
-      // the earlier "background goes black" glitch than this dampening
-      // rect itself, which is a small, fixed-geometry shape with no
-      // dependency on ball state. Only lets the beam (and the bright
-      // pulse) show through during the actual firing window.
-      const beamDx = BEAM_END.x - BEAM_START.x;
-      const beamDy = BEAM_END.y - BEAM_START.y;
-      const beamLen = Math.hypot(beamDx, beamDy);
-      const beamAngle = Math.atan2(beamDy, beamDx);
-      const beamMidX = (BEAM_START.x + BEAM_END.x) / 2;
-      const beamMidY = (BEAM_START.y + BEAM_END.y) / 2;
-      context.save();
-      context.translate(beamMidX, beamMidY);
-      context.rotate(beamAngle);
-      context.fillStyle = "#12141d";
-      context.globalAlpha = Math.max(0, 1 - pulse * 1.4);
-      context.fillRect(-beamLen / 2 - 22, -20, beamLen + 44, 40);
-      context.restore();
-
+      // A flat-color rect can never look like "the actual background" —
+      // it has none of the floor's tile texture or lighting detail, so
+      // it reads as an obvious patch no matter what color is chosen.
+      // Masking the baked-in beam this way is fundamentally the wrong
+      // technique; it needs a real clean background image with no beam
+      // (same approach as public/golf-course.jpg itself) to actually
+      // hide it convincingly. Until that exists, the beam stays part of
+      // the visible artwork and only the bright pulse animates on top.
       if (pulse > 0.02) {
         context.save();
         context.globalAlpha = pulse;
