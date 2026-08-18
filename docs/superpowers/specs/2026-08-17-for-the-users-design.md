@@ -71,7 +71,7 @@ New client component, `components/bonus/GolfGame.tsx`, canvas-based.
 
 **Look:** hand-coded canvas shapes couldn't reach the visual quality an
 illustrated scene needs, so the course background is a real image
-(`public/golf-course.jpg`) — an original isometric "energy level" scene
+(`public/golf-course-default.jpg`) — an original isometric "energy level" scene
 Jon generated himself (inspired by Zany Golf's mood, not a reproduction
 of it, and distinct enough to avoid any copyright concern), including a
 turret that fires a beam across the course. Tee, hole, and the beam's
