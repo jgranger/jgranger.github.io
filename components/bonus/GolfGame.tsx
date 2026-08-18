@@ -361,19 +361,41 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       const pulse = beamPulseStrength(now);
 
       if (!sunk.current && !exploded.current && !dragging.current) {
-        b.x += b.vx;
-        b.y += b.vy;
+        // Sub-step the movement: at max power the ball can travel ~24px
+        // in one frame, more than twice its own radius — fast enough to
+        // tunnel straight through a thin wall between one frame's
+        // position and the next, before any distance check ever runs
+        // close enough to catch it. Moving in smaller increments (each
+        // no larger than the ball's radius) and resolving collisions
+        // after every increment closes that gap.
+        const stepDist = Math.hypot(b.vx, b.vy);
+        const substeps = Math.max(1, Math.ceil(stepDist / BALL_RADIUS));
+        for (let i = 0; i < substeps; i++) {
+          b.x += b.vx / substeps;
+          b.y += b.vy / substeps;
+
+          resolveBoundary(b);
+          resolveInteriorWall(b);
+          for (const obstacle of OBSTACLES) {
+            if (obstacle.kind === "circle") {
+              resolveCircle(b, obstacle.x, obstacle.y, obstacle.r);
+            } else {
+              resolveRect(b, obstacle.x, obstacle.y, obstacle.w, obstacle.h);
+            }
+          }
+        }
         b.vx *= FRICTION;
         b.vy *= FRICTION;
 
-        resolveBoundary(b);
-        resolveInteriorWall(b);
-        for (const obstacle of OBSTACLES) {
-          if (obstacle.kind === "circle") {
-            resolveCircle(b, obstacle.x, obstacle.y, obstacle.r);
-          } else {
-            resolveRect(b, obstacle.x, obstacle.y, obstacle.w, obstacle.h);
-          }
+        // Defensive recovery: if the ball ever ends up somewhere
+        // impossible (NaN from a degenerate collision, or genuinely off
+        // the playable area despite the above), reset rather than
+        // leaving the game permanently stuck.
+        const outOfBounds =
+          !Number.isFinite(b.x) || !Number.isFinite(b.y) ||
+          b.x < -50 || b.x > WIDTH + 50 || b.y < -50 || b.y > HEIGHT + 50;
+        if (outOfBounds) {
+          resetBall();
         }
 
         // The beam is a hazard only while actively pulsing.
