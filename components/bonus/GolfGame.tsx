@@ -14,6 +14,13 @@ function scaled(x: number, y: number): { x: number; y: number } {
 }
 
 const BALL_RADIUS = 9;
+// Used for wall/obstacle collision instead of the ball's full visual
+// radius — using BALL_RADIUS there stacks up to a keep-out margin wide
+// enough that the ball visibly can't approach anything closely,
+// especially bad right at the hole. A smaller collision margin lets it
+// nestle much closer to walls and obstacles, at the cost of a few
+// pixels of visual overlap when actually touching one.
+const COLLISION_MARGIN = 4;
 const HOLE_CAPTURE_RADIUS = 14;
 const MAX_SINK_SPEED = 7;
 const FRICTION = 0.985;
@@ -269,7 +276,7 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       const dx = b.x - cx;
       const dy = b.y - cy;
       const dist = Math.hypot(dx, dy);
-      const minDist = r + BALL_RADIUS;
+      const minDist = r + COLLISION_MARGIN;
       if (dist < minDist) {
         const nx = dist > 0.001 ? dx / dist : 1;
         const ny = dist > 0.001 ? dy / dist : 0;
@@ -289,11 +296,11 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       const dx = b.x - cx;
       const dy = b.y - cy;
       const dist = Math.hypot(dx, dy);
-      if (dist < BALL_RADIUS) {
+      if (dist < COLLISION_MARGIN) {
         const nx = dist > 0.001 ? dx / dist : 1;
         const ny = dist > 0.001 ? dy / dist : 0;
-        b.x = cx + nx * BALL_RADIUS;
-        b.y = cy + ny * BALL_RADIUS;
+        b.x = cx + nx * COLLISION_MARGIN;
+        b.y = cy + ny * COLLISION_MARGIN;
         const dot = b.vx * nx + b.vy * ny;
         if (dot < 0) {
           b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
@@ -311,11 +318,11 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         const a = BOUNDARY[i];
         const c = BOUNDARY[(i + 1) % BOUNDARY.length];
         const { dist, cx, cy } = pointSegmentDistance(b.x, b.y, a.x, a.y, c.x, c.y);
-        if (dist < BALL_RADIUS) {
+        if (dist < COLLISION_MARGIN) {
           const nx = dist > 0.001 ? (b.x - cx) / dist : 0;
           const ny = dist > 0.001 ? (b.y - cy) / dist : 0;
-          b.x = cx + nx * BALL_RADIUS;
-          b.y = cy + ny * BALL_RADIUS;
+          b.x = cx + nx * COLLISION_MARGIN;
+          b.y = cy + ny * COLLISION_MARGIN;
           const dot = b.vx * nx + b.vy * ny;
           if (dot < 0) {
             b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
@@ -335,11 +342,11 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         const a = INTERIOR_WALL[i];
         const c = INTERIOR_WALL[i + 1];
         const { dist, cx, cy } = pointSegmentDistance(b.x, b.y, a.x, a.y, c.x, c.y);
-        if (dist < BALL_RADIUS) {
+        if (dist < COLLISION_MARGIN) {
           const nx = dist > 0.001 ? (b.x - cx) / dist : 0;
           const ny = dist > 0.001 ? (b.y - cy) / dist : 0;
-          b.x = cx + nx * BALL_RADIUS;
-          b.y = cy + ny * BALL_RADIUS;
+          b.x = cx + nx * COLLISION_MARGIN;
+          b.y = cy + ny * COLLISION_MARGIN;
           const dot = b.vx * nx + b.vy * ny;
           if (dot < 0) {
             b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
@@ -375,7 +382,7 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         // no larger than the ball's radius) and resolving collisions
         // after every increment closes that gap.
         const stepDist = Math.hypot(b.vx, b.vy);
-        const substeps = Math.max(1, Math.ceil(stepDist / BALL_RADIUS));
+        const substeps = Math.max(1, Math.ceil(stepDist / COLLISION_MARGIN));
         for (let i = 0; i < substeps; i++) {
           b.x += b.vx / substeps;
           b.y += b.vy / substeps;
