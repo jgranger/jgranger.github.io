@@ -49,111 +49,40 @@ const TEE = scaled(265, 295);
 // The goal is the actual mouse hole (a rounded archway opening in the
 // wall, confirmed by close inspection of the artwork) — not the
 // flag/pin marker elsewhere in the scene, which is just decoration.
-const HOLE = scaled(1408, 283);
+// Position extracted directly from Jon's hand-marked map (a magenta
+// dot at its exact center), not estimated from a crop.
+const HOLE = scaled(1413.5, 294);
 
-// The room's boundary, traced from the artwork's pipe railing — a
-// closed polygon the ball bounces off of like a real wall, not the
-// bare canvas edge.
-// The right side (near the hole) has a genuinely intricate zigzag of
-// pipe notches in the artwork — rather than risk another mismatched
-// straight-line gap trying to trace every jog precisely, this cuts
-// inside it conservatively (a slightly smaller play area, but reliably
-// solid everywhere).
-const BOUNDARY_SRC: [number, number][] = [
-  [230, 95], [600, 15], [770, 15], [1300, 15], [1560, 95],
-  [1580, 250], [1580, 300], [1590, 420], [90, 420], [0, 300], [0, 195],
-];
-const BOUNDARY = BOUNDARY_SRC.map(([x, y]) => scaled(x, y));
-
-// The turret/beam/receiver sit in a sunken pit, not on open floor — this
-// traces the pit's actual retaining wall (a real diagonal panel in the
-// artwork, not a raised platform as first assumed). The hole and the
-// main floor sit on the normal-elevation side of this line; the pit
-// interior (where the beam travels) is on the other. Previous attempts
-// modeled this area as disconnected boxes near the wrong y-position
-// entirely (assumed near y=15-105; the actual wall runs through
-// y=150-340) — this is why it "didn't even exist" as a barrier.
-// Full traced length restored — truncating it earlier (to unblock a
-// straight shot at the hole) reopened lateral pit access along the
-// whole missing stretch, which is exactly the "ball travels through
-// the wall onto the upper level and back" Jon reported. The direct
-// tee-to-hole line was computed to cross this wall at exactly one
-// point (~1278.7,284.4, on the (1200,245)-(1300,295) segment) — GATE
-// below carves a small deliberate opening only there, leaving the rest
-// of the wall solid.
-const INTERIOR_WALL_SRC: [number, number][] = [
-  [1000, 150], [1100, 195], [1200, 245], [1300, 295], [1400, 340],
-];
-const INTERIOR_WALL = INTERIOR_WALL_SRC.map(([x, y]) => scaled(x, y));
-const INTERIOR_WALL_GATE = scaled(1278.7, 284.4);
-const INTERIOR_WALL_GATE_RADIUS = 12;
+// Every wall, wall-shaped obstacle, and the pit boundary used to be a
+// hand-approximated list of rects/circles/segments — a whole class of
+// bugs ("the shape doesn't match the art") kept recurring because none
+// of those shapes were ever traced precisely. Jon hand-drew the actual
+// solid/floor boundary directly over the artwork (green = walls/solid,
+// orange = energy-wall hazard, both treated as solid for now), which
+// was flood-filled from the tee into a pixel-accurate walkable-area
+// mask (see scripts/build-collision-mask.py) — public/collision-mask.png,
+// sampled at runtime instead of approximated in code. Only the small
+// purple-orb pedestals (never traced by Jon, deliberately left to be
+// found programmatically, same color-clustering approach as before)
+// remain as circle obstacles layered on top of the mask.
+const MASK_WIDTH = WIDTH;
+const MASK_HEIGHT = HEIGHT;
 
 interface CircleObstacle {
-  kind: "circle";
   x: number;
   y: number;
   r: number;
 }
-interface RectObstacle {
-  kind: "rect";
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-type Obstacle = CircleObstacle | RectObstacle;
 
 function circleObstacle(x: number, y: number, r: number): CircleObstacle {
   const p = scaled(x, y);
-  return { kind: "circle", x: p.x, y: p.y, r: r * SCALE };
-}
-function rectObstacle(x: number, y: number, w: number, h: number): RectObstacle {
-  const p = scaled(x, y);
-  return { kind: "rect", x: p.x, y: p.y, w: w * SCALE, h: h * SCALE };
+  return { x: p.x, y: p.y, r: r * SCALE };
 }
 
-// Solid props traced from the artwork — the console, crates, fence
-// posts, portal rings, the bench, the turret base, the beam's receiver
-// drum, and every individual purple-orb pedestal pickup scattered
-// across the floor. Orb positions were found by color-clustering the
-// actual image pixels (sampling a confirmed orb's color, then
-// flood-filling matching regions) rather than estimated by eye, since
-// an earlier eyeballed pass missed most of them entirely. Approximate
-// footprints, not pixel-perfect, but real enough that the ball
-// actually bounces off the structure.
-const OBSTACLES: Obstacle[] = [
-  // Raised triangular ramp/platform — a solid block sitting above floor
-  // level, not a walkway to anywhere reachable. Missed in the first
-  // pass entirely (the ball rolled straight through it).
-  rectObstacle(585, 5, 185, 195),
-  rectObstacle(470, 95, 140, 120),
-  rectObstacle(750, 55, 290, 150),
-  rectObstacle(950, 200, 110, 65),
-  // The back strip behind the console is raised upper-tier floor with
-  // no solid prop actually sealing its front edge — the ball could
-  // wander laterally into it and back out. Traced directly from Jon's
-  // marked-up screenshots.
-  rectObstacle(1030, 15, 280, 90),
-  rectObstacle(110, 145, 25, 70),
-  rectObstacle(250, 145, 25, 70),
-  rectObstacle(400, 335, 25, 65),
-  rectObstacle(500, 325, 25, 65),
-  // The raised portal ring near the tee is a solid 3D obstacle; the
-  // second ring right below it is a completely flat floor decal
-  // (walkable, correctly has no collider) — these were originally
-  // mislocated and conflated as two solid obstacles.
-  circleObstacle(165, 320, 75),
-  rectObstacle(560, 330, 160, 70),
-  circleObstacle(820, 405, 48),
-  // Shrunk from its original 75-tall box: that fully spanned the mouse
-  // hole's y-level, so any straight shot at hole height rammed the
-  // drum's face and bounced straight back — confirmed by simulating
-  // shots in Node (no power level ever reached the hole with the taller
-  // box; several do with this one).
-  rectObstacle(1140, 225, 120, 25),
-  // Note: the small archway near (1390,265) is the mouse hole itself
-  // (the actual goal) — deliberately NOT an obstacle.
-  // Orb pedestals (color-clustered centers, ~16px radius each):
+// Orb pedestals (color-clustered centers, ~16px radius each) — the one
+// piece of the map still handled the same way as before, per Jon's
+// request.
+const ORB_OBSTACLES: CircleObstacle[] = [
   circleObstacle(428, 210, 16),
   circleObstacle(662, 248, 16),
   circleObstacle(881, 243, 16),
@@ -220,6 +149,46 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
 
     const bg = new Image();
     bg.src = "/golf-course-default.jpg";
+
+    // The collision mask: white = walkable floor, black = solid (wall,
+    // obstacle footprint, or outside the room). Loaded once, decoded to
+    // an offscreen canvas, then sampled directly at runtime — no drawImage
+    // of it, it's never rendered, only read.
+    const maskImage = new Image();
+    maskImage.src = "/collision-mask.png";
+    let maskData: ImageData | null = null;
+    maskImage.onload = () => {
+      const off = document.createElement("canvas");
+      off.width = MASK_WIDTH;
+      off.height = MASK_HEIGHT;
+      const offCtx = off.getContext("2d");
+      if (!offCtx) return;
+      offCtx.drawImage(maskImage, 0, 0, MASK_WIDTH, MASK_HEIGHT);
+      maskData = offCtx.getImageData(0, 0, MASK_WIDTH, MASK_HEIGHT);
+    };
+
+    function isWalkable(x: number, y: number): boolean {
+      if (!maskData) return true; // mask not loaded yet — don't block movement
+      const px = Math.round(x);
+      const py = Math.round(y);
+      if (px < 0 || px >= MASK_WIDTH || py < 0 || py >= MASK_HEIGHT) return false;
+      const i = (py * MASK_WIDTH + px) * 4;
+      return maskData.data[i] > 128; // red channel: 255 = floor, 0 = solid
+    }
+
+    // The ball is a circle, not a point — sample a ring of points at its
+    // radius (plus a small margin) in addition to the center, so it can't
+    // clip its edge through a wall that its center hasn't reached yet.
+    const SAMPLE_ANGLES = 8;
+    function ballFits(x: number, y: number): boolean {
+      if (!isWalkable(x, y)) return false;
+      const r = BALL_RADIUS + COLLISION_MARGIN;
+      for (let i = 0; i < SAMPLE_ANGLES; i++) {
+        const a = (i / SAMPLE_ANGLES) * Math.PI * 2;
+        if (!isWalkable(x + Math.cos(a) * r, y + Math.sin(a) * r)) return false;
+      }
+      return true;
+    }
 
     let frame: number;
     const startTime = performance.now();
@@ -306,72 +275,24 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       }
     }
 
-    function resolveRect(b: BallState, rx: number, ry: number, rw: number, rh: number) {
-      const cx = Math.max(rx, Math.min(b.x, rx + rw));
-      const cy = Math.max(ry, Math.min(b.y, ry + rh));
-      const dx = b.x - cx;
-      const dy = b.y - cy;
-      const dist = Math.hypot(dx, dy);
-      if (dist < COLLISION_MARGIN) {
-        const nx = dist > 0.001 ? dx / dist : 1;
-        const ny = dist > 0.001 ? dy / dist : 0;
-        b.x = cx + nx * COLLISION_MARGIN;
-        b.y = cy + ny * COLLISION_MARGIN;
-        const dot = b.vx * nx + b.vy * ny;
-        if (dot < 0) {
-          b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
-          b.vy -= 2 * dot * ny * BOUNCE_DAMPING;
-        }
-      }
-    }
+    // Mask-based wall collision, axis-separated: try moving X and Y
+    // independently, and revert+bounce whichever axis actually caused the
+    // ball to enter solid ground. This is the standard technique for
+    // colliding a circle against an arbitrary pixel mask — it naturally
+    // handles the mask's real shape (every jog and notch in the traced
+    // artwork) instead of approximating it with a handful of rects and
+    // segments, which is what kept leaving gaps and mismatches before.
+    function resolveMask(b: BallState, prevX: number, prevY: number) {
+      const movedX = b.x !== prevX;
+      const movedY = b.y !== prevY;
 
-    // Boundary edges push the ball back toward the interior: since the
-    // ball normally approaches from inside the polygon, the vector from
-    // the closest edge point to the ball naturally points further
-    // inward, which is exactly the correct push/reflect direction.
-    function resolveBoundary(b: BallState) {
-      for (let i = 0; i < BOUNDARY.length; i++) {
-        const a = BOUNDARY[i];
-        const c = BOUNDARY[(i + 1) % BOUNDARY.length];
-        const { dist, cx, cy } = pointSegmentDistance(b.x, b.y, a.x, a.y, c.x, c.y);
-        if (dist < COLLISION_MARGIN) {
-          const nx = dist > 0.001 ? (b.x - cx) / dist : 0;
-          const ny = dist > 0.001 ? (b.y - cy) / dist : 0;
-          b.x = cx + nx * COLLISION_MARGIN;
-          b.y = cy + ny * COLLISION_MARGIN;
-          const dot = b.vx * nx + b.vy * ny;
-          if (dot < 0) {
-            b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
-            b.vy -= 2 * dot * ny * BOUNCE_DAMPING;
-          }
-        }
+      if (movedX && !ballFits(b.x, prevY)) {
+        b.x = prevX;
+        b.vx *= -BOUNCE_DAMPING;
       }
-    }
-
-    // The pit's retaining wall — an open polyline (not a closed loop
-    // like the boundary), pushing the ball away from whichever side it
-    // approaches from. That's exactly the bidirectional behavior a real
-    // wall needs: block crossing from the floor side, and equally block
-    // crossing back out from the pit side.
-    function resolveInteriorWall(b: BallState) {
-      if (Math.hypot(b.x - INTERIOR_WALL_GATE.x, b.y - INTERIOR_WALL_GATE.y) < INTERIOR_WALL_GATE_RADIUS) {
-        return;
-      }
-      for (let i = 0; i < INTERIOR_WALL.length - 1; i++) {
-        const a = INTERIOR_WALL[i];
-        const c = INTERIOR_WALL[i + 1];
-        const { dist, cx, cy } = pointSegmentDistance(b.x, b.y, a.x, a.y, c.x, c.y);
-        if (dist < COLLISION_MARGIN) {
-          const nx = dist > 0.001 ? (b.x - cx) / dist : 0;
-          const ny = dist > 0.001 ? (b.y - cy) / dist : 0;
-          b.x = cx + nx * COLLISION_MARGIN;
-          b.y = cy + ny * COLLISION_MARGIN;
-          const dot = b.vx * nx + b.vy * ny;
-          if (dot < 0) {
-            b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
-            b.vy -= 2 * dot * ny * BOUNCE_DAMPING;
-          }
-        }
+      if (movedY && !ballFits(b.x, b.y)) {
+        b.y = prevY;
+        b.vy *= -BOUNCE_DAMPING;
       }
     }
 
@@ -403,17 +324,14 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         const stepDist = Math.hypot(b.vx, b.vy);
         const substeps = Math.max(1, Math.ceil(stepDist / COLLISION_MARGIN));
         for (let i = 0; i < substeps && !sunk.current && !exploded.current; i++) {
+          const prevX = b.x;
+          const prevY = b.y;
           b.x += b.vx / substeps;
           b.y += b.vy / substeps;
 
-          resolveBoundary(b);
-          resolveInteriorWall(b);
-          for (const obstacle of OBSTACLES) {
-            if (obstacle.kind === "circle") {
-              resolveCircle(b, obstacle.x, obstacle.y, obstacle.r);
-            } else {
-              resolveRect(b, obstacle.x, obstacle.y, obstacle.w, obstacle.h);
-            }
+          resolveMask(b, prevX, prevY);
+          for (const orb of ORB_OBSTACLES) {
+            resolveCircle(b, orb.x, orb.y, orb.r);
           }
 
           // Checked after every sub-step, not once per frame: at speed,
