@@ -32,10 +32,12 @@ const SINK_ANIMATION_MS = 800;
 const EXPLODE_ANIMATION_MS = 550;
 
 // Pixel positions below are all given in the SOURCE image's native
-// 1681x467 resolution (matching what was measured directly against
-// public/golf-course.jpg with debug markers before committing), then
-// scaled down to canvas resolution at load time — kept in source scale
-// here so they stay legible/checkable against the artwork.
+// 1681x467 resolution, matching what was measured directly against the
+// artwork with debug markers before committing, then scaled down to
+// canvas resolution at load time. public/golf-course-default.jpg (the
+// beam-off background actually rendered) was aligned to this exact
+// same 1681x467 frame via a two-point affine fit against the original
+// reference image, so every position below still applies unchanged.
 const TEE = scaled(265, 295);
 const HOLE = scaled(1395, 150);
 
@@ -194,7 +196,7 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
     const ctx: CanvasRenderingContext2D = context2d;
 
     const bg = new Image();
-    bg.src = "/golf-course.jpg";
+    bg.src = "/golf-course-default.jpg";
 
     let frame: number;
     const startTime = performance.now();
@@ -459,14 +461,9 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.fillRect(0, 0, WIDTH, HEIGHT);
       }
 
-      // A flat-color rect can never look like "the actual background" —
-      // it has none of the floor's tile texture or lighting detail, so
-      // it reads as an obvious patch no matter what color is chosen.
-      // Masking the baked-in beam this way is fundamentally the wrong
-      // technique; it needs a real clean background image with no beam
-      // (same approach as public/golf-course.jpg itself) to actually
-      // hide it convincingly. Until that exists, the beam stays part of
-      // the visible artwork and only the bright pulse animates on top.
+      // The background itself has no beam baked in (golf-course-
+      // default.jpg) — no masking needed. The bright pulse is the only
+      // beam ever drawn, and only while actually firing.
       if (pulse > 0.02) {
         context.save();
         context.globalAlpha = pulse;
