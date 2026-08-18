@@ -2,6 +2,11 @@
 // exactly, so shots can be verified in Node before shipping changes.
 // Keep this in sync with the component's constants/logic when either changes.
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { PNG } from "pngjs";
+
 const SOURCE_WIDTH = 1681;
 const WIDTH = 1000;
 const HEIGHT = 278;
@@ -20,58 +25,52 @@ const LAUNCH_POWER = 0.11;
 const BOUNCE_DAMPING = 0.72;
 
 const TEE = scaled(265, 295);
-const HOLE = scaled(1408, 283);
-
-const BOUNDARY_SRC = [
-  [230, 95], [600, 15], [770, 15], [1300, 15], [1560, 95],
-  [1580, 250], [1580, 300], [1590, 420], [90, 420], [0, 300], [0, 195],
-];
-const BOUNDARY = BOUNDARY_SRC.map(([x, y]) => scaled(x, y));
-
-const INTERIOR_WALL_SRC = [
-  [1000, 150], [1100, 195], [1200, 245], [1300, 295], [1400, 340],
-];
-const INTERIOR_WALL = INTERIOR_WALL_SRC.map(([x, y]) => scaled(x, y));
-const INTERIOR_WALL_GATE = scaled(1278.7, 284.4);
-const INTERIOR_WALL_GATE_RADIUS = 12;
+const HOLE = scaled(1413.5, 294);
 
 function circleObstacle(x, y, r) {
   const p = scaled(x, y);
-  return { kind: "circle", x: p.x, y: p.y, r: r * SCALE };
-}
-function rectObstacle(x, y, w, h) {
-  const p = scaled(x, y);
-  return { kind: "rect", x: p.x, y: p.y, w: w * SCALE, h: h * SCALE };
+  return { x: p.x, y: p.y, r: r * SCALE };
 }
 
-const OBSTACLES = [
-  rectObstacle(585, 5, 185, 195),
-  rectObstacle(470, 95, 140, 120),
-  rectObstacle(750, 55, 290, 150),
-  rectObstacle(950, 200, 110, 65),
-  rectObstacle(1030, 15, 280, 90),
-  rectObstacle(110, 145, 25, 70),
-  rectObstacle(250, 145, 25, 70),
-  rectObstacle(400, 335, 25, 65),
-  rectObstacle(500, 325, 25, 65),
-  circleObstacle(165, 320, 75),
-  rectObstacle(560, 330, 160, 70),
-  circleObstacle(820, 405, 48),
-  rectObstacle(1140, 225, 120, 25),
-  circleObstacle(428, 210, 16),
-  circleObstacle(662, 248, 16),
-  circleObstacle(881, 243, 16),
-  circleObstacle(757, 322, 16),
-  circleObstacle(935, 355, 16),
-  circleObstacle(297, 370, 16),
-  circleObstacle(1129, 65, 16),
-  circleObstacle(1264, 103, 16),
-  circleObstacle(1356, 356, 16),
+const ORB_OBSTACLES = [
+  circleObstacle(428, 210, 16), circleObstacle(662, 248, 16), circleObstacle(881, 243, 16),
+  circleObstacle(757, 322, 16), circleObstacle(935, 355, 16), circleObstacle(297, 370, 16),
+  circleObstacle(1129, 65, 16), circleObstacle(1264, 103, 16), circleObstacle(1356, 356, 16),
   circleObstacle(1265, 391, 16),
 ];
 
 const BEAM_START = scaled(850, 395);
 const BEAM_END = scaled(1255, 240);
+
+// The collision mask: white = walkable floor, black = solid. Built by
+// scripts/build-collision-mask.py from Jon's hand-marked map — see that
+// script for how public/collision-mask.png is generated.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const MASK_PATH = path.join(__dirname, "..", "public", "collision-mask.png");
+const maskPng = PNG.sync.read(readFileSync(MASK_PATH));
+const MASK_WIDTH = maskPng.width;
+const MASK_HEIGHT = maskPng.height;
+
+function isWalkable(x, y) {
+  const px = Math.round(x), py = Math.round(y);
+  if (px < 0 || px >= MASK_WIDTH || py < 0 || py >= MASK_HEIGHT) return false;
+  const i = (py * MASK_WIDTH + px) * 4;
+  return maskPng.data[i] > 128;
+}
+
+// The ball is a circle, not a point — sample a ring of points at its
+// radius (plus a small margin) in addition to the center, matching
+// GolfGame.tsx's ballFits exactly.
+const SAMPLE_ANGLES = 8;
+function ballFits(x, y) {
+  if (!isWalkable(x, y)) return false;
+  const r = BALL_RADIUS + COLLISION_MARGIN;
+  for (let i = 0; i < SAMPLE_ANGLES; i++) {
+    const a = (i / SAMPLE_ANGLES) * Math.PI * 2;
+    if (!isWalkable(x + Math.cos(a) * r, y + Math.sin(a) * r)) return false;
+  }
+  return true;
+}
 
 function pointSegmentDistance(px, py, x1, y1, x2, y2) {
   const dx = x2 - x1, dy = y2 - y1;
@@ -94,45 +93,19 @@ function resolveCircle(b, cx, cy, r) {
     if (dot < 0) { b.vx -= 2 * dot * nx * BOUNCE_DAMPING; b.vy -= 2 * dot * ny * BOUNCE_DAMPING; }
   }
 }
-function resolveRect(b, rx, ry, rw, rh) {
-  const cx = Math.max(rx, Math.min(b.x, rx + rw));
-  const cy = Math.max(ry, Math.min(b.y, ry + rh));
-  const dx = b.x - cx, dy = b.y - cy;
-  const dist = Math.hypot(dx, dy);
-  if (dist < COLLISION_MARGIN) {
-    const nx = dist > 0.001 ? dx / dist : 1;
-    const ny = dist > 0.001 ? dy / dist : 0;
-    b.x = cx + nx * COLLISION_MARGIN; b.y = cy + ny * COLLISION_MARGIN;
-    const dot = b.vx * nx + b.vy * ny;
-    if (dot < 0) { b.vx -= 2 * dot * nx * BOUNCE_DAMPING; b.vy -= 2 * dot * ny * BOUNCE_DAMPING; }
-  }
-}
-function resolveBoundary(b) {
-  for (let i = 0; i < BOUNDARY.length; i++) {
-    const a = BOUNDARY[i], c = BOUNDARY[(i + 1) % BOUNDARY.length];
-    const { dist, cx, cy } = pointSegmentDistance(b.x, b.y, a.x, a.y, c.x, c.y);
-    if (dist < COLLISION_MARGIN) {
-      const nx = dist > 0.001 ? (b.x - cx) / dist : 0;
-      const ny = dist > 0.001 ? (b.y - cy) / dist : 0;
-      b.x = cx + nx * COLLISION_MARGIN; b.y = cy + ny * COLLISION_MARGIN;
-      const dot = b.vx * nx + b.vy * ny;
-      if (dot < 0) { b.vx -= 2 * dot * nx * BOUNCE_DAMPING; b.vy -= 2 * dot * ny * BOUNCE_DAMPING; }
-    }
-  }
-}
-function resolveInteriorWall(b) {
-  if (Math.hypot(b.x - INTERIOR_WALL_GATE.x, b.y - INTERIOR_WALL_GATE.y) < INTERIOR_WALL_GATE_RADIUS) return;
-  for (let i = 0; i < INTERIOR_WALL.length - 1; i++) {
-    const a = INTERIOR_WALL[i], c = INTERIOR_WALL[i + 1];
-    const { dist, cx, cy } = pointSegmentDistance(b.x, b.y, a.x, a.y, c.x, c.y);
-    if (dist < COLLISION_MARGIN) {
-      const nx = dist > 0.001 ? (b.x - cx) / dist : 0;
-      const ny = dist > 0.001 ? (b.y - cy) / dist : 0;
-      b.x = cx + nx * COLLISION_MARGIN; b.y = cy + ny * COLLISION_MARGIN;
-      const dot = b.vx * nx + b.vy * ny;
-      if (dot < 0) { b.vx -= 2 * dot * nx * BOUNCE_DAMPING; b.vy -= 2 * dot * ny * BOUNCE_DAMPING; }
-    }
-  }
+
+// Mask-based wall collision, axis-separated: try moving X and Y
+// independently, and revert+bounce whichever axis actually caused the
+// ball to enter solid ground. Matches GolfGame.tsx's resolveMask exactly
+// — in particular, there is deliberately no third "combined point" check:
+// an earlier version had one, and it fully reversed both velocity axes on
+// any corner graze, turning glancing bounces into dead stops and trapping
+// the ball near the tee.
+function resolveMask(b, prevX, prevY) {
+  const movedX = b.x !== prevX;
+  const movedY = b.y !== prevY;
+  if (movedX && !ballFits(b.x, prevY)) { b.x = prevX; b.vx *= -BOUNCE_DAMPING; }
+  if (movedY && !ballFits(b.x, b.y)) { b.y = prevY; b.vy *= -BOUNCE_DAMPING; }
 }
 
 function speed(b) { return Math.hypot(b.vx, b.vy); }
@@ -159,14 +132,11 @@ function simulateShot(from, dragPoint, maxFrames = 2000) {
     if (stepDist < REST_SPEED) break;
     const substeps = Math.max(1, Math.ceil(stepDist / COLLISION_MARGIN));
     for (let i = 0; i < substeps; i++) {
+      const prevX = b.x; const prevY = b.y;
       b.x += b.vx / substeps;
       b.y += b.vy / substeps;
-      resolveBoundary(b);
-      resolveInteriorWall(b);
-      for (const o of OBSTACLES) {
-        if (o.kind === "circle") resolveCircle(b, o.x, o.y, o.r);
-        else resolveRect(b, o.x, o.y, o.w, o.h);
-      }
+      resolveMask(b, prevX, prevY);
+      for (const orb of ORB_OBSTACLES) resolveCircle(b, orb.x, orb.y, orb.r);
 
       // Checked per-substep, matching the real component's fix: a fast
       // ball can cross the whole capture zone within one frame's worth
@@ -207,5 +177,5 @@ function simulateShot(from, dragPoint, maxFrames = 2000) {
 }
 
 export {
-  simulateShot, TEE, HOLE, WIDTH, HEIGHT, MAX_PULL, BEAM_START, BEAM_END,
+  simulateShot, ballFits, TEE, HOLE, WIDTH, HEIGHT, MAX_PULL, BEAM_START, BEAM_END,
 };
