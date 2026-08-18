@@ -21,7 +21,7 @@ const BALL_RADIUS = 9;
 // nestle much closer to walls and obstacles, at the cost of a few
 // pixels of visual overlap when actually touching one.
 const COLLISION_MARGIN = 3;
-const HOLE_CAPTURE_RADIUS = 16;
+const HOLE_CAPTURE_RADIUS = 10;
 const MAX_SINK_SPEED = 7;
 const FRICTION = 0.985;
 const REST_SPEED = 0.1;
@@ -46,7 +46,10 @@ const EXPLODE_ANIMATION_MS = 550;
 // same 1681x467 frame via a two-point affine fit against the original
 // reference image, so every position below still applies unchanged.
 const TEE = scaled(265, 295);
-const HOLE = scaled(1395, 150);
+// The goal is the actual mouse hole (a rounded archway opening in the
+// wall, confirmed by close inspection of the artwork) — not the
+// flag/pin marker elsewhere in the scene, which is just decoration.
+const HOLE = scaled(1408, 283);
 
 // The room's boundary, traced from the artwork's pipe railing — a
 // closed polygon the ball bounces off of like a real wall, not the
@@ -70,8 +73,15 @@ const BOUNDARY = BOUNDARY_SRC.map(([x, y]) => scaled(x, y));
 // modeled this area as disconnected boxes near the wrong y-position
 // entirely (assumed near y=15-105; the actual wall runs through
 // y=150-340) — this is why it "didn't even exist" as a barrier.
+// Truncated short of its full traced length: the last two segments
+// pass close enough to the mouse hole that they blocked every straight
+// shot at it (confirmed by simulating shots in Node — reachability
+// only holds with the wall stopped here). This reopens a small lateral
+// gap into the pit right next to the hole/receiver, which is a real
+// trade-off, but the beam hazard still punishes lingering there, and a
+// reachable hole matters more than a fully sealed pit at this one spot.
 const INTERIOR_WALL_SRC: [number, number][] = [
-  [1000, 150], [1100, 195], [1200, 245], [1300, 295], [1400, 340],
+  [1000, 150], [1100, 195], [1200, 245],
 ];
 const INTERIOR_WALL = INTERIOR_WALL_SRC.map(([x, y]) => scaled(x, y));
 
@@ -116,14 +126,11 @@ const OBSTACLES: Obstacle[] = [
   rectObstacle(470, 95, 140, 120),
   rectObstacle(750, 55, 290, 150),
   rectObstacle(950, 200, 110, 65),
-  // The back strip behind the console, and the pocket right of the
-  // receiver drum near the small arch, are both raised upper-tier
-  // floor with no solid prop actually sealing their front edge — the
-  // ball could wander laterally into either and back out. Traced
-  // directly from Jon's marked-up screenshots. Both stop well clear of
-  // the hole (1395,150), which stays on the lower, reachable tier.
+  // The back strip behind the console is raised upper-tier floor with
+  // no solid prop actually sealing its front edge — the ball could
+  // wander laterally into it and back out. Traced directly from Jon's
+  // marked-up screenshots.
   rectObstacle(1030, 15, 280, 90),
-  rectObstacle(1450, 230, 200, 115),
   rectObstacle(110, 145, 25, 70),
   rectObstacle(250, 145, 25, 70),
   rectObstacle(400, 335, 25, 65),
@@ -135,8 +142,14 @@ const OBSTACLES: Obstacle[] = [
   circleObstacle(165, 320, 75),
   rectObstacle(560, 330, 160, 70),
   circleObstacle(820, 405, 48),
-  rectObstacle(1140, 225, 120, 75),
-  rectObstacle(1390, 265, 30, 35),
+  // Shrunk from its original 75-tall box: that fully spanned the mouse
+  // hole's y-level, so any straight shot at hole height rammed the
+  // drum's face and bounced straight back — confirmed by simulating
+  // shots in Node (no power level ever reached the hole with the taller
+  // box; several do with this one).
+  rectObstacle(1140, 225, 120, 25),
+  // Note: the small archway near (1390,265) is the mouse hole itself
+  // (the actual goal) — deliberately NOT an obstacle.
   // Orb pedestals (color-clustered centers, ~16px radius each):
   circleObstacle(428, 210, 16),
   circleObstacle(662, 248, 16),
@@ -507,26 +520,6 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         }
         context.shadowBlur = 0;
       }
-
-      const flagBaseY = HOLE.y - 4;
-      const flagDrop = sunk.current ? sinkProgress * 24 : 0;
-      const flagOpacity = sunk.current ? 1 - sinkProgress : 1;
-      context.save();
-      context.globalAlpha = flagOpacity;
-      context.strokeStyle = "#e8eef5";
-      context.lineWidth = 1.5;
-      context.beginPath();
-      context.moveTo(HOLE.x, flagBaseY + flagDrop);
-      context.lineTo(HOLE.x, flagBaseY - 18 + flagDrop);
-      context.stroke();
-      context.beginPath();
-      context.moveTo(HOLE.x, flagBaseY - 18 + flagDrop);
-      context.lineTo(HOLE.x + 10, flagBaseY - 14 + flagDrop);
-      context.lineTo(HOLE.x, flagBaseY - 10 + flagDrop);
-      context.closePath();
-      context.fillStyle = "#ef4444";
-      context.fill();
-      context.restore();
 
       if (dragging.current) {
         const b = ball.current;
