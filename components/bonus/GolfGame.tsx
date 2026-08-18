@@ -48,6 +48,19 @@ const BOUNDARY_SRC: [number, number][] = [
 ];
 const BOUNDARY = BOUNDARY_SRC.map(([x, y]) => scaled(x, y));
 
+// The turret/beam/receiver sit in a sunken pit, not on open floor — this
+// traces the pit's actual retaining wall (a real diagonal panel in the
+// artwork, not a raised platform as first assumed). The hole and the
+// main floor sit on the normal-elevation side of this line; the pit
+// interior (where the beam travels) is on the other. Previous attempts
+// modeled this area as disconnected boxes near the wrong y-position
+// entirely (assumed near y=15-105; the actual wall runs through
+// y=150-340) — this is why it "didn't even exist" as a barrier.
+const INTERIOR_WALL_SRC: [number, number][] = [
+  [1000, 150], [1100, 195], [1200, 245], [1300, 295], [1400, 340],
+];
+const INTERIOR_WALL = INTERIOR_WALL_SRC.map(([x, y]) => scaled(x, y));
+
 interface CircleObstacle {
   kind: "circle";
   x: number;
@@ -96,7 +109,7 @@ const OBSTACLES: Obstacle[] = [
   // directly from Jon's marked-up screenshots. Both stop well clear of
   // the hole (1395,150), which stays on the lower, reachable tier.
   rectObstacle(1030, 15, 280, 90),
-  rectObstacle(1370, 200, 280, 125),
+  rectObstacle(1370, 200, 280, 145),
   rectObstacle(110, 145, 25, 70),
   rectObstacle(250, 145, 25, 70),
   rectObstacle(400, 335, 25, 65),
@@ -306,6 +319,30 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       }
     }
 
+    // The pit's retaining wall — an open polyline (not a closed loop
+    // like the boundary), pushing the ball away from whichever side it
+    // approaches from. That's exactly the bidirectional behavior a real
+    // wall needs: block crossing from the floor side, and equally block
+    // crossing back out from the pit side.
+    function resolveInteriorWall(b: BallState) {
+      for (let i = 0; i < INTERIOR_WALL.length - 1; i++) {
+        const a = INTERIOR_WALL[i];
+        const c = INTERIOR_WALL[i + 1];
+        const { dist, cx, cy } = pointSegmentDistance(b.x, b.y, a.x, a.y, c.x, c.y);
+        if (dist < BALL_RADIUS) {
+          const nx = dist > 0.001 ? (b.x - cx) / dist : 0;
+          const ny = dist > 0.001 ? (b.y - cy) / dist : 0;
+          b.x = cx + nx * BALL_RADIUS;
+          b.y = cy + ny * BALL_RADIUS;
+          const dot = b.vx * nx + b.vy * ny;
+          if (dot < 0) {
+            b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
+            b.vy -= 2 * dot * ny * BOUNCE_DAMPING;
+          }
+        }
+      }
+    }
+
     function triggerExplosion(now: number) {
       exploded.current = true;
       explodedAt.current = now;
@@ -330,6 +367,7 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         b.vy *= FRICTION;
 
         resolveBoundary(b);
+        resolveInteriorWall(b);
         for (const obstacle of OBSTACLES) {
           if (obstacle.kind === "circle") {
             resolveCircle(b, obstacle.x, obstacle.y, obstacle.r);
