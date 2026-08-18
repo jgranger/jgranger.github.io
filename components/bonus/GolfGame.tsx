@@ -2,58 +2,43 @@
 
 import { useEffect, useRef } from "react";
 
-// Logical course size — the canvas is drawn at this resolution and
-// scaled to fit its container via CSS, so all physics/constants below
-// are in these logical units regardless of actual pixel size on screen.
-const WIDTH = 600;
-const HEIGHT = 360;
+// Canvas resolution matches the background art's aspect ratio
+// (1681x467) so drawImage never distorts it.
+const WIDTH = 1000;
+const HEIGHT = 278;
+
 const BALL_RADIUS = 9;
-const HOLE_RADIUS = 16;
-const HOLE_CAPTURE_RADIUS = 20;
-const MAX_SINK_SPEED = 4.2;
+const HOLE_CAPTURE_RADIUS = 14;
+const MAX_SINK_SPEED = 7;
 const FRICTION = 0.985;
-const REST_SPEED = 0.06;
-const MAX_PULL = 130;
+const REST_SPEED = 0.1;
+const MAX_PULL = 217;
 const LAUNCH_POWER = 0.11;
 const RESET_DELAY_MS = 700;
 
-// The hole "blinks" — like the mouse hole's eyes in Zany Golf — and only
-// accepts the ball while lit. Arriving while it's dark bounces the ball
-// off instead of sinking, so timing matters as much as aim and power.
+// The hole's eyes are white by default and pulse red on a fixed cycle —
+// like the mouse hole's eyes in Zany Golf — and the ball only sinks
+// while they're red. Arriving too fast, or while they're white, bounces
+// the ball off instead of sinking.
 const HOLE_BLINK_PERIOD_MS = 1800;
 const HOLE_LIT_DURATION_MS = 500;
 const SINK_ANIMATION_MS = 800;
 
-const TEE = { x: 90, y: HEIGHT - 60 };
-const HOLE = { x: WIDTH - 90, y: 70 };
+// Pixel positions calibrated against public/golf-course.png (the
+// provided energy-level artwork), scaled from the source image's
+// 1681x467 resolution down to this canvas's 1000x278.
+const TEE = { x: 158, y: 176 };
+const HOLE = { x: 830, y: 89 };
 
-// Isometric projection applied only at draw/input time — physics still
-// simulate on the plain flat plane above (unchanged, already-tuned
-// friction/bounce/capture math), and this shear+scale matrix is what
-// makes that flat plane render as a tilted isometric floor, matching
-// the real game's look instead of a flat top-down grid.
-const ISO_K = 0.5;
-const ISO_OFFSET_X = 240;
-// Extra headroom above the floor's back corner for walls/machinery to
-// rise into, without going off the top of the canvas.
-const ISO_OFFSET_Y = 80;
-const WALL_HEIGHT = 55;
-
-function toScreen(x: number, y: number): { x: number; y: number } {
-  return {
-    x: ISO_K * (x - y) + ISO_OFFSET_X,
-    y: (ISO_K / 2) * (x + y) + ISO_OFFSET_Y,
-  };
-}
-
-function toLogical(sx: number, sy: number): { x: number; y: number } {
-  const dx = sx - ISO_OFFSET_X;
-  const dy = sy - ISO_OFFSET_Y;
-  return {
-    x: (dx / ISO_K + 2 * (dy / ISO_K)) / 2,
-    y: (2 * (dy / ISO_K) - dx / ISO_K) / 2,
-  };
-}
+// Approximate path of the turret's beam in the artwork, used only for
+// the periodic bright pulse overlay — the beam itself is baked into
+// the background image and always faintly visible; this animates an
+// extra bright flash along it every so often, per "the pulse is not
+// visible by default, but every so often it shoots across the screen."
+const BEAM_START = { x: 506, y: 235 };
+const BEAM_END = { x: 747, y: 143 };
+const BEAM_PULSE_PERIOD_MS = 4200;
+const BEAM_PULSE_DURATION_MS = 500;
 
 interface BallState {
   x: number;
@@ -78,6 +63,9 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
     if (!context2d) return;
     const ctx: CanvasRenderingContext2D = context2d;
 
+    const bg = new Image();
+    bg.src = "/golf-course.jpg";
+
     let frame: number;
     const startTime = performance.now();
 
@@ -85,14 +73,19 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       return ((now - startTime) % HOLE_BLINK_PERIOD_MS) < HOLE_LIT_DURATION_MS;
     }
 
+    function beamPulseStrength(now: number): number {
+      const t = (now - startTime) % BEAM_PULSE_PERIOD_MS;
+      if (t > BEAM_PULSE_DURATION_MS) return 0;
+      // Ease in/out across the pulse window rather than a hard on/off.
+      return Math.sin((t / BEAM_PULSE_DURATION_MS) * Math.PI);
+    }
+
     function pointerPos(event: PointerEvent): { x: number; y: number } {
       const rect = canvas!.getBoundingClientRect();
-      const canvasX = ((event.clientX - rect.left) / rect.width) * WIDTH;
-      const canvasY = ((event.clientY - rect.top) / rect.height) * HEIGHT;
-      // The scene renders through the isometric transform, so pointer
-      // input has to go through its inverse to land back in the same
-      // flat logical space the ball's physics actually live in.
-      return toLogical(canvasX, canvasY);
+      return {
+        x: ((event.clientX - rect.left) / rect.width) * WIDTH,
+        y: ((event.clientY - rect.top) / rect.height) * HEIGHT,
+      };
     }
 
     function speed(b: BallState): number {
@@ -201,262 +194,72 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       frame = requestAnimationFrame(step);
     }
 
-    // Decorative pipe segments, purely cosmetic — the industrial-machinery
-    // energy from the reference, drawn in the site's own steel/cyan tones
-    // rather than copied wholesale.
-    function drawPipe(
-      context: CanvasRenderingContext2D,
-      x: number,
-      y: number,
-      length: number,
-      vertical: boolean
-    ) {
-      context.save();
-      context.strokeStyle = "rgba(148, 163, 184, 0.35)";
-      context.lineWidth = 8;
-      context.lineCap = "round";
-      context.beginPath();
-      if (vertical) {
-        context.moveTo(x, y);
-        context.lineTo(x, y + length);
-      } else {
-        context.moveTo(x, y);
-        context.lineTo(x + length, y);
-      }
-      context.stroke();
-      context.strokeStyle = "rgba(226, 232, 240, 0.15)";
-      context.lineWidth = 2;
-      context.stroke();
-      context.restore();
-    }
-
-    // A small pedestal with a pulsing energy ring floating above it — our
-    // own take on the reference's pickup-on-a-pedestal prop.
-    function drawPedestal(
-      context: CanvasRenderingContext2D,
-      cx: number,
-      cy: number,
-      color: string,
-      now: number,
-      phase: number
-    ) {
-      const top = drawIsoBlock(context, cx, cy, 12, 9, 10, "#3a3f4d", "#20222c");
-      const pulse = 0.6 + 0.4 * Math.sin(now / 500 + phase);
-      context.save();
-      context.globalAlpha = 0.35 + 0.35 * pulse;
-      context.beginPath();
-      context.arc(top.x, top.y - 14, 7, 0, Math.PI * 2);
-      context.strokeStyle = color;
-      context.lineWidth = 2;
-      context.shadowColor = color;
-      context.shadowBlur = 8 * pulse;
-      context.stroke();
-      context.restore();
-    }
-
-    // A wall rising WALL_HEIGHT px from a floor-plane edge (logical
-    // coordinates), drawn in plain screen space via toScreen — computed
-    // here rather than inside the floor's sheared transform, since a
-    // vertical rise on screen isn't a straight line in logical space
-    // once you've applied the shear.
-    function drawIsoWall(
-      context: CanvasRenderingContext2D,
-      fromX: number,
-      fromY: number,
-      toX: number,
-      toY: number,
-      color: string,
-      lightColor: string
-    ) {
-      const a = toScreen(fromX, fromY);
-      const b = toScreen(toX, toY);
-      context.save();
-      context.beginPath();
-      context.moveTo(a.x, a.y);
-      context.lineTo(b.x, b.y);
-      context.lineTo(b.x, b.y - WALL_HEIGHT);
-      context.lineTo(a.x, a.y - WALL_HEIGHT);
-      context.closePath();
-      context.fillStyle = color;
-      context.fill();
-      context.strokeStyle = lightColor;
-      context.lineWidth = 1;
-      context.stroke();
-      context.restore();
-    }
-
-    // A simple raised block (console/pedestal), footprint centered at a
-    // logical point, drawn as a top face plus two visible side faces —
-    // same screen-space technique as the walls.
-    function drawIsoBlock(
-      context: CanvasRenderingContext2D,
-      cx: number,
-      cy: number,
-      halfW: number,
-      halfD: number,
-      height: number,
-      topColor: string,
-      sideColor: string
-    ) {
-      const corners = [
-        toScreen(cx - halfW, cy - halfD),
-        toScreen(cx + halfW, cy - halfD),
-        toScreen(cx + halfW, cy + halfD),
-        toScreen(cx - halfW, cy + halfD),
-      ];
-      context.save();
-      // Left face (front-left corner pair).
-      context.beginPath();
-      context.moveTo(corners[0].x, corners[0].y);
-      context.lineTo(corners[3].x, corners[3].y);
-      context.lineTo(corners[3].x, corners[3].y - height);
-      context.lineTo(corners[0].x, corners[0].y - height);
-      context.closePath();
-      context.fillStyle = sideColor;
-      context.fill();
-      // Right face (front-right corner pair).
-      context.beginPath();
-      context.moveTo(corners[2].x, corners[2].y);
-      context.lineTo(corners[3].x, corners[3].y);
-      context.lineTo(corners[3].x, corners[3].y - height);
-      context.lineTo(corners[2].x, corners[2].y - height);
-      context.closePath();
-      context.fillStyle = sideColor;
-      context.fill();
-      // Top face.
-      context.beginPath();
-      context.moveTo(corners[0].x, corners[0].y - height);
-      context.lineTo(corners[1].x, corners[1].y - height);
-      context.lineTo(corners[2].x, corners[2].y - height);
-      context.lineTo(corners[3].x, corners[3].y - height);
-      context.closePath();
-      context.fillStyle = topColor;
-      context.fill();
-      context.restore();
-      return { x: (corners[0].x + corners[2].x) / 2, y: corners[0].y - height };
-    }
-
-    function draw(
-      context: CanvasRenderingContext2D,
-      lit: boolean,
-      now: number
-    ) {
-      context.setTransform(1, 0, 0, 1, 0, 0);
+    function draw(context: CanvasRenderingContext2D, lit: boolean, now: number) {
       context.clearRect(0, 0, WIDTH, HEIGHT);
-      context.fillStyle = "#05070d";
-      context.fillRect(0, 0, WIDTH, HEIGHT);
-
-      // Back walls, in screen space — the room enclosure the flat floor
-      // was missing. Tron-accented panel lines rather than bare steel.
-      drawIsoWall(context, 0, 0, WIDTH, 0, "#171923", "rgba(34, 211, 238, 0.25)");
-      drawIsoWall(context, 0, 0, 0, HEIGHT, "#11131c", "rgba(167, 139, 250, 0.2)");
-
-      // A console silhouette against the back corner — our own shape,
-      // not a copy of any reference image.
-      const consoleTop = drawIsoBlock(context, 120, 90, 34, 26, 42, "#3a3f4d", "#20222c");
-      context.save();
-      context.fillStyle = "#ef4444";
-      context.shadowColor = "#ef4444";
-      context.shadowBlur = 6;
-      context.beginPath();
-      context.arc(consoleTop.x, consoleTop.y + 10, 3, 0, Math.PI * 2);
-      context.fill();
-      context.shadowBlur = 0;
-      context.restore();
-
-      // Pedestal-mounted energy pickups, decorative only.
-      drawPedestal(context, 260, 140, "#a78bfa", now, 0);
-      drawPedestal(context, 480, 240, "#ec4899", now, 1.4);
-      drawPedestal(context, 340, 300, "#a78bfa", now, 2.6);
-
-      // Everything below renders through the isometric shear so the flat
-      // physics plane above reads as a tilted floor, like the real game.
-      context.save();
-      context.transform(ISO_K, ISO_K / 2, -ISO_K, ISO_K / 2, ISO_OFFSET_X, ISO_OFFSET_Y);
-
-      // Floor — a filled tile checker in muted steel/maroon tones (the
-      // reference's palette), not the site's own cyan.
-      context.fillStyle = "#2a2230";
-      context.fillRect(0, 0, WIDTH, HEIGHT);
-      const TILE = 30;
-      for (let ty = 0; ty < HEIGHT; ty += TILE) {
-        for (let tx = 0; tx < WIDTH; tx += TILE) {
-          if (((tx / TILE) + (ty / TILE)) % 2 === 0) {
-            context.fillStyle = "rgba(255, 255, 255, 0.035)";
-            context.fillRect(tx, ty, TILE, TILE);
-          }
-        }
+      if (bg.complete && bg.naturalWidth > 0) {
+        context.drawImage(bg, 0, 0, WIDTH, HEIGHT);
+      } else {
+        context.fillStyle = "#05070d";
+        context.fillRect(0, 0, WIDTH, HEIGHT);
       }
-      context.strokeStyle = "rgba(255, 255, 255, 0.08)";
-      context.lineWidth = 1;
-      for (let x = 0; x <= WIDTH; x += TILE) {
+
+      // Periodic bright pulse along the turret beam baked into the
+      // artwork — off by default, flashes across every few seconds.
+      const pulse = beamPulseStrength(now);
+      if (pulse > 0.02) {
+        context.save();
+        context.globalAlpha = pulse;
+        context.strokeStyle = "#e9d5ff";
+        context.lineWidth = 4;
+        context.shadowColor = "#c084fc";
+        context.shadowBlur = 16 * pulse;
         context.beginPath();
-        context.moveTo(x, 0);
-        context.lineTo(x, HEIGHT);
+        context.moveTo(BEAM_START.x, BEAM_START.y);
+        context.lineTo(BEAM_END.x, BEAM_END.y);
         context.stroke();
+        context.restore();
       }
-      for (let y = 0; y <= HEIGHT; y += TILE) {
-        context.beginPath();
-        context.moveTo(0, y);
-        context.lineTo(WIDTH, y);
-        context.stroke();
-      }
-
-      // Pipes running the floor's back edges — flat, so they can stay
-      // inside the sheared floor transform along with the tile grid.
-      drawPipe(context, 20, 16, WIDTH - 40, false);
-      drawPipe(context, WIDTH - 24, 30, HEIGHT - 60, true);
 
       // Sink animation progress (0 = just sunk, 1 = fully settled/hidden).
       const sinkProgress = sunk.current
         ? Math.min(1, (now - sunkAt.current) / SINK_ANIMATION_MS)
         : 0;
 
-      // Hole — understated rather than a bold ring (the mouse hole barely
-      // reads against the scene in the reference too). Eyes are white by
-      // default and pulse red on the accept window; the ball only sinks
-      // while they're red.
-      context.beginPath();
-      context.arc(HOLE.x, HOLE.y, HOLE_RADIUS, 0, Math.PI * 2);
-      context.fillStyle = "#0b1220";
-      context.fill();
-      context.strokeStyle = "rgba(167, 139, 250, 0.4)";
-      context.lineWidth = 1.5;
-      context.stroke();
-
+      // Hole's eyes — white by default, red on the accept window. Drawn
+      // over the artwork's own hole graphic each frame.
       if (sinkProgress < 1) {
         const eyeColor = lit ? "#ef4444" : "rgba(232, 238, 245, 0.7)";
-        const eyeOffset = 6;
+        const eyeOffset = 4;
         context.fillStyle = eyeColor;
         if (lit) {
           context.shadowColor = "#ef4444";
-          context.shadowBlur = 10;
+          context.shadowBlur = 8;
         }
         for (const dx of [-eyeOffset, eyeOffset]) {
           context.beginPath();
-          context.arc(HOLE.x + dx, HOLE.y - 2, 2.5, 0, Math.PI * 2);
+          context.arc(HOLE.x + dx, HOLE.y - 1, 1.8, 0, Math.PI * 2);
           context.fill();
         }
         context.shadowBlur = 0;
       }
 
-      // Flag pin above the hole — sinks down with the ball on a
-      // successful shot, both fading out together.
-      const flagBaseY = HOLE.y - HOLE_RADIUS - 4;
-      const flagDrop = sunk.current ? sinkProgress * 34 : 0;
+      // Flag pin — redrawn each frame over the artwork's own flag, so it
+      // can sink down with the ball and fade out together on a win.
+      const flagBaseY = HOLE.y - 4;
+      const flagDrop = sunk.current ? sinkProgress * 24 : 0;
       const flagOpacity = sunk.current ? 1 - sinkProgress : 1;
       context.save();
       context.globalAlpha = flagOpacity;
       context.strokeStyle = "#e8eef5";
-      context.lineWidth = 2;
+      context.lineWidth = 1.5;
       context.beginPath();
       context.moveTo(HOLE.x, flagBaseY + flagDrop);
-      context.lineTo(HOLE.x, flagBaseY - 26 + flagDrop);
+      context.lineTo(HOLE.x, flagBaseY - 18 + flagDrop);
       context.stroke();
       context.beginPath();
-      context.moveTo(HOLE.x, flagBaseY - 26 + flagDrop);
-      context.lineTo(HOLE.x + 14, flagBaseY - 21 + flagDrop);
-      context.lineTo(HOLE.x, flagBaseY - 16 + flagDrop);
+      context.moveTo(HOLE.x, flagBaseY - 18 + flagDrop);
+      context.lineTo(HOLE.x + 10, flagBaseY - 14 + flagDrop);
+      context.lineTo(HOLE.x, flagBaseY - 10 + flagDrop);
       context.closePath();
       context.fillStyle = "#ef4444";
       context.fill();
@@ -475,23 +278,26 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.setLineDash([]);
       }
 
-      // Ball — drops into the hole and fades out with the flag on a win,
-      // instead of just vanishing.
+      // Ball — drops into the hole and fades out with the flag on a win.
       const b = ball.current;
       if (sinkProgress < 1) {
         context.save();
         context.globalAlpha = sunk.current ? 1 - sinkProgress * 0.7 : 1;
-        const dropY = sunk.current ? b.y + sinkProgress * 10 : b.y;
+        const dropY = sunk.current ? b.y + sinkProgress * 8 : b.y;
+        const gradient = context.createRadialGradient(
+          b.x - 3, dropY - 3, 1,
+          b.x, dropY, BALL_RADIUS
+        );
+        gradient.addColorStop(0, "#fca5a5");
+        gradient.addColorStop(1, "#b91c1c");
         context.beginPath();
         context.arc(b.x, dropY, BALL_RADIUS, 0, Math.PI * 2);
-        context.fillStyle = "#e8eef5";
-        context.shadowColor = "#22d3ee";
-        context.shadowBlur = 10;
+        context.fillStyle = gradient;
+        context.shadowColor = "#000";
+        context.shadowBlur = 4;
         context.fill();
         context.restore();
       }
-
-      context.restore();
     }
 
     frame = requestAnimationFrame(step);

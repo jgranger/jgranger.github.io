@@ -69,11 +69,21 @@ separate route.
 
 New client component, `components/bonus/GolfGame.tsx`, canvas-based.
 
-**Look:** a blend, not a reproduction of either source — the site's
-existing cyan/violet palette and grid motif for the course itself, with
-Zany Golf's kinetic, slightly playful energy in the animation feel
-(bouncy easing on the win state, a punchy launch, not sterile/flat
-motion).
+**Look:** hand-coded canvas shapes couldn't reach the visual quality an
+illustrated scene needs, so the course background is a real image
+(`public/golf-course.jpg`) — an original isometric "energy level" scene
+Jon generated himself (inspired by Zany Golf's mood, not a reproduction
+of it, and distinct enough to avoid any copyright concern), including a
+turret that fires a beam across the course. Tee, hole, and the beam's
+path are calibrated pixel positions against that specific image
+(verified by rendering markers onto it before committing). Physics
+still simulate in plain flat 2D canvas coordinates matching the image's
+pixel space directly — no isometric transform math needed once the art
+itself already encodes the perspective. Canvas-drawn overlays (ball,
+aim line, the hole's blinking eyes, the flag) redraw each frame on top
+of the static background so they can move and animate; the beam itself
+is baked into the artwork and always faintly visible, with an
+additional bright pulse animated along its path periodically.
 
 **Input:** the Pointer Events API (`pointerdown`/`pointermove`/
 `pointerup`) unifies mouse and touch in one code path — no separate
