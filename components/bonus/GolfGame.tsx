@@ -4,8 +4,14 @@ import { useEffect, useRef } from "react";
 
 // Canvas resolution matches the background art's aspect ratio
 // (1681x467) so drawImage never distorts it.
+const SOURCE_WIDTH = 1681;
 const WIDTH = 1000;
 const HEIGHT = 278;
+const SCALE = WIDTH / SOURCE_WIDTH;
+
+function scaled(x: number, y: number): { x: number; y: number } {
+  return { x: x * SCALE, y: y * SCALE };
+}
 
 const BALL_RADIUS = 9;
 const HOLE_CAPTURE_RADIUS = 14;
@@ -15,6 +21,7 @@ const REST_SPEED = 0.1;
 const MAX_PULL = 217;
 const LAUNCH_POWER = 0.11;
 const RESET_DELAY_MS = 700;
+const BOUNCE_DAMPING = 0.72;
 
 // The hole's eyes are white by default and pulse red on a fixed cycle —
 // like the mouse hole's eyes in Zany Golf — and the ball only sinks
@@ -23,28 +30,103 @@ const RESET_DELAY_MS = 700;
 const HOLE_BLINK_PERIOD_MS = 1800;
 const HOLE_LIT_DURATION_MS = 500;
 const SINK_ANIMATION_MS = 800;
+const EXPLODE_ANIMATION_MS = 550;
 
-// Pixel positions calibrated against public/golf-course.png (the
-// provided energy-level artwork), scaled from the source image's
-// 1681x467 resolution down to this canvas's 1000x278.
-const TEE = { x: 158, y: 176 };
-const HOLE = { x: 830, y: 89 };
+// Pixel positions below are all given in the SOURCE image's native
+// 1681x467 resolution (matching what was measured directly against
+// public/golf-course.jpg with debug markers before committing), then
+// scaled down to canvas resolution at load time — kept in source scale
+// here so they stay legible/checkable against the artwork.
+const TEE = scaled(265, 295);
+const HOLE = scaled(1395, 150);
 
-// Approximate path of the turret's beam in the artwork, used only for
-// the periodic bright pulse overlay — the beam itself is baked into
-// the background image and always faintly visible; this animates an
-// extra bright flash along it every so often, per "the pulse is not
-// visible by default, but every so often it shoots across the screen."
-const BEAM_START = { x: 506, y: 235 };
-const BEAM_END = { x: 747, y: 143 };
+// The room's boundary, traced from the artwork's pipe railing — a
+// closed polygon the ball bounces off of like a real wall, not the
+// bare canvas edge.
+const BOUNDARY_SRC: [number, number][] = [
+  [230, 95], [600, 15], [770, 15], [1300, 15], [1600, 95],
+  [1650, 195], [1650, 300], [1590, 420], [90, 420], [0, 300], [0, 195],
+];
+const BOUNDARY = BOUNDARY_SRC.map(([x, y]) => scaled(x, y));
+
+interface CircleObstacle {
+  kind: "circle";
+  x: number;
+  y: number;
+  r: number;
+}
+interface RectObstacle {
+  kind: "rect";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+type Obstacle = CircleObstacle | RectObstacle;
+
+function circleObstacle(x: number, y: number, r: number): CircleObstacle {
+  const p = scaled(x, y);
+  return { kind: "circle", x: p.x, y: p.y, r: r * SCALE };
+}
+function rectObstacle(x: number, y: number, w: number, h: number): RectObstacle {
+  const p = scaled(x, y);
+  return { kind: "rect", x: p.x, y: p.y, w: w * SCALE, h: h * SCALE };
+}
+
+// Solid props traced from the artwork — the console, crates, fence
+// posts, portal rings, bollards, the bench, the turret base, and the
+// beam's receiver drum. Approximate footprints, not pixel-perfect, but
+// real enough that the ball actually bounces off the structure.
+const OBSTACLES: Obstacle[] = [
+  rectObstacle(750, 55, 290, 150),
+  rectObstacle(950, 200, 110, 65),
+  rectObstacle(110, 145, 25, 70),
+  rectObstacle(250, 145, 25, 70),
+  rectObstacle(400, 335, 25, 65),
+  rectObstacle(500, 325, 25, 65),
+  circleObstacle(185, 185, 45),
+  circleObstacle(165, 300, 55),
+  circleObstacle(290, 235, 15),
+  circleObstacle(935, 355, 15),
+  rectObstacle(560, 330, 160, 70),
+  circleObstacle(820, 405, 40),
+  rectObstacle(1140, 200, 105, 65),
+  rectObstacle(1390, 265, 30, 35),
+];
+
+// Turret beam — hidden by default, animates a bright pulse across this
+// path every few seconds, and destroys the ball if it's in the way
+// while firing.
+const BEAM_START = scaled(850, 395);
+const BEAM_END = scaled(1255, 240);
 const BEAM_PULSE_PERIOD_MS = 4200;
 const BEAM_PULSE_DURATION_MS = 500;
+const BEAM_HAZARD_THRESHOLD = 0.55;
+const BEAM_HIT_RADIUS = 10 * SCALE;
 
 interface BallState {
   x: number;
   y: number;
   vx: number;
   vy: number;
+}
+
+function pointSegmentDistance(
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+): { dist: number; cx: number; cy: number } {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len2 = dx * dx + dy * dy;
+  let t = len2 > 0 ? ((px - x1) * dx + (py - y1) * dy) / len2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  const cx = x1 + t * dx;
+  const cy = y1 + t * dy;
+  return { dist: Math.hypot(px - cx, py - cy), cx, cy };
 }
 
 export function GolfGame({ onWin }: { onWin: () => void }) {
@@ -54,6 +136,8 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
   const dragPoint = useRef({ x: TEE.x, y: TEE.y });
   const sunk = useRef(false);
   const sunkAt = useRef(0);
+  const exploded = useRef(false);
+  const explodedAt = useRef(0);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -76,7 +160,6 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
     function beamPulseStrength(now: number): number {
       const t = (now - startTime) % BEAM_PULSE_PERIOD_MS;
       if (t > BEAM_PULSE_DURATION_MS) return 0;
-      // Ease in/out across the pulse window rather than a hard on/off.
       return Math.sin((t / BEAM_PULSE_DURATION_MS) * Math.PI);
     }
 
@@ -96,16 +179,20 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       return speed(ball.current) < REST_SPEED;
     }
 
+    function resetBall() {
+      ball.current = { x: TEE.x, y: TEE.y, vx: 0, vy: 0 };
+    }
+
     function scheduleReset() {
-      if (resetTimer.current || sunk.current) return;
+      if (resetTimer.current || sunk.current || exploded.current) return;
       resetTimer.current = setTimeout(() => {
-        ball.current = { x: TEE.x, y: TEE.y, vx: 0, vy: 0 };
+        resetBall();
         resetTimer.current = null;
       }, RESET_DELAY_MS);
     }
 
     function handlePointerDown(event: PointerEvent) {
-      if (sunk.current || !isResting()) return;
+      if (sunk.current || exploded.current || !isResting()) return;
       const p = pointerPos(event);
       if (Math.hypot(p.x - ball.current.x, p.y - ball.current.y) > 40) return;
       dragging.current = true;
@@ -138,30 +225,106 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointercancel", handlePointerUp);
 
+    function resolveCircle(b: BallState, cx: number, cy: number, r: number) {
+      const dx = b.x - cx;
+      const dy = b.y - cy;
+      const dist = Math.hypot(dx, dy);
+      const minDist = r + BALL_RADIUS;
+      if (dist < minDist) {
+        const nx = dist > 0.001 ? dx / dist : 1;
+        const ny = dist > 0.001 ? dy / dist : 0;
+        b.x = cx + nx * minDist;
+        b.y = cy + ny * minDist;
+        const dot = b.vx * nx + b.vy * ny;
+        if (dot < 0) {
+          b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
+          b.vy -= 2 * dot * ny * BOUNCE_DAMPING;
+        }
+      }
+    }
+
+    function resolveRect(b: BallState, rx: number, ry: number, rw: number, rh: number) {
+      const cx = Math.max(rx, Math.min(b.x, rx + rw));
+      const cy = Math.max(ry, Math.min(b.y, ry + rh));
+      const dx = b.x - cx;
+      const dy = b.y - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist < BALL_RADIUS) {
+        const nx = dist > 0.001 ? dx / dist : 1;
+        const ny = dist > 0.001 ? dy / dist : 0;
+        b.x = cx + nx * BALL_RADIUS;
+        b.y = cy + ny * BALL_RADIUS;
+        const dot = b.vx * nx + b.vy * ny;
+        if (dot < 0) {
+          b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
+          b.vy -= 2 * dot * ny * BOUNCE_DAMPING;
+        }
+      }
+    }
+
+    // Boundary edges push the ball back toward the interior: since the
+    // ball normally approaches from inside the polygon, the vector from
+    // the closest edge point to the ball naturally points further
+    // inward, which is exactly the correct push/reflect direction.
+    function resolveBoundary(b: BallState) {
+      for (let i = 0; i < BOUNDARY.length; i++) {
+        const a = BOUNDARY[i];
+        const c = BOUNDARY[(i + 1) % BOUNDARY.length];
+        const { dist, cx, cy } = pointSegmentDistance(b.x, b.y, a.x, a.y, c.x, c.y);
+        if (dist < BALL_RADIUS) {
+          const nx = dist > 0.001 ? (b.x - cx) / dist : 0;
+          const ny = dist > 0.001 ? (b.y - cy) / dist : 0;
+          b.x = cx + nx * BALL_RADIUS;
+          b.y = cy + ny * BALL_RADIUS;
+          const dot = b.vx * nx + b.vy * ny;
+          if (dot < 0) {
+            b.vx -= 2 * dot * nx * BOUNCE_DAMPING;
+            b.vy -= 2 * dot * ny * BOUNCE_DAMPING;
+          }
+        }
+      }
+    }
+
+    function triggerExplosion(now: number) {
+      exploded.current = true;
+      explodedAt.current = now;
+      ball.current.vx = 0;
+      ball.current.vy = 0;
+      setTimeout(() => {
+        resetBall();
+        exploded.current = false;
+      }, EXPLODE_ANIMATION_MS + 150);
+    }
+
     function step() {
       const b = ball.current;
       const now = performance.now();
       const lit = isHoleLit(now);
+      const pulse = beamPulseStrength(now);
 
-      if (!sunk.current && !dragging.current) {
+      if (!sunk.current && !exploded.current && !dragging.current) {
         b.x += b.vx;
         b.y += b.vy;
         b.vx *= FRICTION;
         b.vy *= FRICTION;
 
-        if (b.x - BALL_RADIUS < 0) {
-          b.x = BALL_RADIUS;
-          b.vx *= -0.6;
-        } else if (b.x + BALL_RADIUS > WIDTH) {
-          b.x = WIDTH - BALL_RADIUS;
-          b.vx *= -0.6;
+        resolveBoundary(b);
+        for (const obstacle of OBSTACLES) {
+          if (obstacle.kind === "circle") {
+            resolveCircle(b, obstacle.x, obstacle.y, obstacle.r);
+          } else {
+            resolveRect(b, obstacle.x, obstacle.y, obstacle.w, obstacle.h);
+          }
         }
-        if (b.y - BALL_RADIUS < 0) {
-          b.y = BALL_RADIUS;
-          b.vy *= -0.6;
-        } else if (b.y + BALL_RADIUS > HEIGHT) {
-          b.y = HEIGHT - BALL_RADIUS;
-          b.vy *= -0.6;
+
+        // The beam is a hazard only while actively pulsing.
+        if (pulse > BEAM_HAZARD_THRESHOLD) {
+          const { dist } = pointSegmentDistance(
+            b.x, b.y, BEAM_START.x, BEAM_START.y, BEAM_END.x, BEAM_END.y
+          );
+          if (dist < BEAM_HIT_RADIUS) {
+            triggerExplosion(now);
+          }
         }
 
         const distToHole = Math.hypot(b.x - HOLE.x, b.y - HOLE.y);
@@ -169,32 +332,39 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         // first refusal exactly where the ball actually enters the hole,
         // not at some larger outer radius the ball would bounce off of
         // before ever reaching the real capture zone.
-        if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) < MAX_SINK_SPEED && lit) {
-          sunk.current = true;
-          sunkAt.current = now;
-          onWin();
-        } else if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) > 0.01) {
-          // Close enough to sink, but the hole isn't lit (bad timing) or
-          // the ball is moving too fast — bounce off the rim instead.
-          const nx = (b.x - HOLE.x) / (distToHole || 1);
-          const ny = (b.y - HOLE.y) / (distToHole || 1);
-          b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
-          b.y = HOLE.y + ny * HOLE_CAPTURE_RADIUS;
-          const dot = b.vx * nx + b.vy * ny;
-          b.vx = (b.vx - 2 * dot * nx) * 0.7;
-          b.vy = (b.vy - 2 * dot * ny) * 0.7;
-        } else if (isResting()) {
-          b.vx = 0;
-          b.vy = 0;
-          scheduleReset();
+        if (!exploded.current) {
+          if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) < MAX_SINK_SPEED && lit) {
+            sunk.current = true;
+            sunkAt.current = now;
+            onWin();
+          } else if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) > 0.01) {
+            // Close enough to sink, but the hole isn't lit (bad timing) or
+            // the ball is moving too fast — bounce off the rim instead.
+            const nx = (b.x - HOLE.x) / (distToHole || 1);
+            const ny = (b.y - HOLE.y) / (distToHole || 1);
+            b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
+            b.y = HOLE.y + ny * HOLE_CAPTURE_RADIUS;
+            const dot = b.vx * nx + b.vy * ny;
+            b.vx = (b.vx - 2 * dot * nx) * 0.7;
+            b.vy = (b.vy - 2 * dot * ny) * 0.7;
+          } else if (isResting()) {
+            b.vx = 0;
+            b.vy = 0;
+            scheduleReset();
+          }
         }
       }
 
-      draw(ctx, lit, now);
+      draw(ctx, lit, now, pulse);
       frame = requestAnimationFrame(step);
     }
 
-    function draw(context: CanvasRenderingContext2D, lit: boolean, now: number) {
+    function draw(
+      context: CanvasRenderingContext2D,
+      lit: boolean,
+      now: number,
+      pulse: number
+    ) {
       context.clearRect(0, 0, WIDTH, HEIGHT);
       if (bg.complete && bg.naturalWidth > 0) {
         context.drawImage(bg, 0, 0, WIDTH, HEIGHT);
@@ -203,9 +373,23 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.fillRect(0, 0, WIDTH, HEIGHT);
       }
 
-      // Periodic bright pulse along the turret beam baked into the
-      // artwork — off by default, flashes across every few seconds.
-      const pulse = beamPulseStrength(now);
+      // Dampen the artwork's baked-in beam to invisible by default —
+      // only let it (and our own bright pulse line) show through while
+      // actively firing.
+      const dx = BEAM_END.x - BEAM_START.x;
+      const dy = BEAM_END.y - BEAM_START.y;
+      const beamLen = Math.hypot(dx, dy);
+      const beamAngle = Math.atan2(dy, dx);
+      const midX = (BEAM_START.x + BEAM_END.x) / 2;
+      const midY = (BEAM_START.y + BEAM_END.y) / 2;
+      context.save();
+      context.translate(midX, midY);
+      context.rotate(beamAngle);
+      context.fillStyle = "#12141d";
+      context.globalAlpha = Math.max(0, 1 - pulse * 1.4);
+      context.fillRect(-beamLen / 2 - 22, -20, beamLen + 44, 40);
+      context.restore();
+
       if (pulse > 0.02) {
         context.save();
         context.globalAlpha = pulse;
@@ -220,13 +404,13 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.restore();
       }
 
-      // Sink animation progress (0 = just sunk, 1 = fully settled/hidden).
       const sinkProgress = sunk.current
         ? Math.min(1, (now - sunkAt.current) / SINK_ANIMATION_MS)
         : 0;
+      const explodeProgress = exploded.current
+        ? Math.min(1, (now - explodedAt.current) / EXPLODE_ANIMATION_MS)
+        : 0;
 
-      // Hole's eyes — white by default, red on the accept window. Drawn
-      // over the artwork's own hole graphic each frame.
       if (sinkProgress < 1) {
         const eyeColor = lit ? "#ef4444" : "rgba(232, 238, 245, 0.7)";
         const eyeOffset = 4;
@@ -235,16 +419,14 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
           context.shadowColor = "#ef4444";
           context.shadowBlur = 8;
         }
-        for (const dx of [-eyeOffset, eyeOffset]) {
+        for (const ex of [-eyeOffset, eyeOffset]) {
           context.beginPath();
-          context.arc(HOLE.x + dx, HOLE.y - 1, 1.8, 0, Math.PI * 2);
+          context.arc(HOLE.x + ex, HOLE.y - 1, 1.8, 0, Math.PI * 2);
           context.fill();
         }
         context.shadowBlur = 0;
       }
 
-      // Flag pin — redrawn each frame over the artwork's own flag, so it
-      // can sink down with the ball and fade out together on a win.
       const flagBaseY = HOLE.y - 4;
       const flagDrop = sunk.current ? sinkProgress * 24 : 0;
       const flagOpacity = sunk.current ? 1 - sinkProgress : 1;
@@ -265,7 +447,6 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
       context.fill();
       context.restore();
 
-      // Aim line while dragging.
       if (dragging.current) {
         const b = ball.current;
         context.beginPath();
@@ -278,9 +459,22 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.setLineDash([]);
       }
 
-      // Ball — drops into the hole and fades out with the flag on a win.
       const b = ball.current;
-      if (sinkProgress < 1) {
+      if (exploded.current && explodeProgress < 1) {
+        // A quick expanding/fading burst instead of the ball.
+        context.save();
+        context.globalAlpha = 1 - explodeProgress;
+        const burstR = BALL_RADIUS + explodeProgress * 22;
+        const grad = context.createRadialGradient(b.x, b.y, 0, b.x, b.y, burstR);
+        grad.addColorStop(0, "#fde68a");
+        grad.addColorStop(0.5, "#fb923c");
+        grad.addColorStop(1, "rgba(239, 68, 68, 0)");
+        context.beginPath();
+        context.arc(b.x, b.y, burstR, 0, Math.PI * 2);
+        context.fillStyle = grad;
+        context.fill();
+        context.restore();
+      } else if (sinkProgress < 1 && !exploded.current) {
         context.save();
         context.globalAlpha = sunk.current ? 1 - sinkProgress * 0.7 : 1;
         const dropY = sunk.current ? b.y + sinkProgress * 8 : b.y;
