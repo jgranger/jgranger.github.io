@@ -139,7 +139,6 @@ const OBSTACLES: Obstacle[] = [
   circleObstacle(1264, 103, 16),
   circleObstacle(1356, 356, 16),
   circleObstacle(1265, 391, 16),
-  circleObstacle(1500, 195, 16), // moved further from the hole for clearance
 ];
 
 // Turret beam — hidden by default, animates a bright pulse across this
@@ -460,11 +459,27 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         context.fillRect(0, 0, WIDTH, HEIGHT);
       }
 
-      // The beam is baked into the artwork itself (both reference
-      // images show it), so it stays faintly visible as ambient scene
-      // detail rather than being masked out — an overlay attempting to
-      // hide/dampen it was unreliable and looked wrong. Only the bright
-      // traveling pulse is animated on top, periodically.
+      // Dampen the artwork's baked-in beam to invisible by default — the
+      // ball's tunneling/NaN bug (since fixed with sub-stepped collision
+      // and a defensive position reset) was the far more likely cause of
+      // the earlier "background goes black" glitch than this dampening
+      // rect itself, which is a small, fixed-geometry shape with no
+      // dependency on ball state. Only lets the beam (and the bright
+      // pulse) show through during the actual firing window.
+      const beamDx = BEAM_END.x - BEAM_START.x;
+      const beamDy = BEAM_END.y - BEAM_START.y;
+      const beamLen = Math.hypot(beamDx, beamDy);
+      const beamAngle = Math.atan2(beamDy, beamDx);
+      const beamMidX = (BEAM_START.x + BEAM_END.x) / 2;
+      const beamMidY = (BEAM_START.y + BEAM_END.y) / 2;
+      context.save();
+      context.translate(beamMidX, beamMidY);
+      context.rotate(beamAngle);
+      context.fillStyle = "#12141d";
+      context.globalAlpha = Math.max(0, 1 - pulse * 1.4);
+      context.fillRect(-beamLen / 2 - 22, -20, beamLen + 44, 40);
+      context.restore();
+
       if (pulse > 0.02) {
         context.save();
         context.globalAlpha = pulse;
