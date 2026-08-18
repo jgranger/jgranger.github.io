@@ -20,8 +20,8 @@ const BALL_RADIUS = 9;
 // especially bad right at the hole. A smaller collision margin lets it
 // nestle much closer to walls and obstacles, at the cost of a few
 // pixels of visual overlap when actually touching one.
-const COLLISION_MARGIN = 4;
-const HOLE_CAPTURE_RADIUS = 14;
+const COLLISION_MARGIN = 3;
+const HOLE_CAPTURE_RADIUS = 16;
 const MAX_SINK_SPEED = 7;
 const FRICTION = 0.985;
 const REST_SPEED = 0.1;
@@ -123,7 +123,7 @@ const OBSTACLES: Obstacle[] = [
   // directly from Jon's marked-up screenshots. Both stop well clear of
   // the hole (1395,150), which stays on the lower, reachable tier.
   rectObstacle(1030, 15, 280, 90),
-  rectObstacle(1370, 200, 280, 145),
+  rectObstacle(1450, 230, 200, 115),
   rectObstacle(110, 145, 25, 70),
   rectObstacle(250, 145, 25, 70),
   rectObstacle(400, 335, 25, 65),
