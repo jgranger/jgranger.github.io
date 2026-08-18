@@ -74,9 +74,14 @@ function rectObstacle(x: number, y: number, w: number, h: number): RectObstacle 
 }
 
 // Solid props traced from the artwork — the console, crates, fence
-// posts, portal rings, bollards, the bench, the turret base, and the
-// beam's receiver drum. Approximate footprints, not pixel-perfect, but
-// real enough that the ball actually bounces off the structure.
+// posts, portal rings, the bench, the turret base, the beam's receiver
+// drum, and every individual purple-orb pedestal pickup scattered
+// across the floor. Orb positions were found by color-clustering the
+// actual image pixels (sampling a confirmed orb's color, then
+// flood-filling matching regions) rather than estimated by eye, since
+// an earlier eyeballed pass missed most of them entirely. Approximate
+// footprints, not pixel-perfect, but real enough that the ball
+// actually bounces off the structure.
 const OBSTACLES: Obstacle[] = [
   rectObstacle(750, 55, 290, 150),
   rectObstacle(950, 200, 110, 65),
@@ -86,12 +91,22 @@ const OBSTACLES: Obstacle[] = [
   rectObstacle(500, 325, 25, 65),
   circleObstacle(185, 185, 45),
   circleObstacle(165, 300, 55),
-  circleObstacle(290, 235, 15),
-  circleObstacle(935, 355, 15),
   rectObstacle(560, 330, 160, 70),
-  circleObstacle(820, 405, 40),
-  rectObstacle(1140, 200, 105, 65),
+  circleObstacle(820, 405, 48),
+  rectObstacle(1140, 225, 120, 75),
   rectObstacle(1390, 265, 30, 35),
+  // Orb pedestals (color-clustered centers, ~16px radius each):
+  circleObstacle(428, 210, 16),
+  circleObstacle(662, 248, 16),
+  circleObstacle(881, 243, 16),
+  circleObstacle(757, 322, 16),
+  circleObstacle(935, 355, 16),
+  circleObstacle(297, 370, 16),
+  circleObstacle(1129, 65, 16),
+  circleObstacle(1264, 103, 16),
+  circleObstacle(1356, 356, 16),
+  circleObstacle(1265, 391, 16),
+  circleObstacle(1475, 159, 16),
 ];
 
 // Turret beam — hidden by default, animates a bright pulse across this
