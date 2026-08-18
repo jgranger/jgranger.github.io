@@ -73,17 +73,20 @@ const BOUNDARY = BOUNDARY_SRC.map(([x, y]) => scaled(x, y));
 // modeled this area as disconnected boxes near the wrong y-position
 // entirely (assumed near y=15-105; the actual wall runs through
 // y=150-340) — this is why it "didn't even exist" as a barrier.
-// Truncated short of its full traced length: the last two segments
-// pass close enough to the mouse hole that they blocked every straight
-// shot at it (confirmed by simulating shots in Node — reachability
-// only holds with the wall stopped here). This reopens a small lateral
-// gap into the pit right next to the hole/receiver, which is a real
-// trade-off, but the beam hazard still punishes lingering there, and a
-// reachable hole matters more than a fully sealed pit at this one spot.
+// Full traced length restored — truncating it earlier (to unblock a
+// straight shot at the hole) reopened lateral pit access along the
+// whole missing stretch, which is exactly the "ball travels through
+// the wall onto the upper level and back" Jon reported. The direct
+// tee-to-hole line was computed to cross this wall at exactly one
+// point (~1278.7,284.4, on the (1200,245)-(1300,295) segment) — GATE
+// below carves a small deliberate opening only there, leaving the rest
+// of the wall solid.
 const INTERIOR_WALL_SRC: [number, number][] = [
-  [1000, 150], [1100, 195], [1200, 245],
+  [1000, 150], [1100, 195], [1200, 245], [1300, 295], [1400, 340],
 ];
 const INTERIOR_WALL = INTERIOR_WALL_SRC.map(([x, y]) => scaled(x, y));
+const INTERIOR_WALL_GATE = scaled(1278.7, 284.4);
+const INTERIOR_WALL_GATE_RADIUS = 12;
 
 interface CircleObstacle {
   kind: "circle";
@@ -351,6 +354,9 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
     // wall needs: block crossing from the floor side, and equally block
     // crossing back out from the pit side.
     function resolveInteriorWall(b: BallState) {
+      if (Math.hypot(b.x - INTERIOR_WALL_GATE.x, b.y - INTERIOR_WALL_GATE.y) < INTERIOR_WALL_GATE_RADIUS) {
+        return;
+      }
       for (let i = 0; i < INTERIOR_WALL.length - 1; i++) {
         const a = INTERIOR_WALL[i];
         const c = INTERIOR_WALL[i + 1];
@@ -396,7 +402,7 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
         // after every increment closes that gap.
         const stepDist = Math.hypot(b.vx, b.vy);
         const substeps = Math.max(1, Math.ceil(stepDist / COLLISION_MARGIN));
-        for (let i = 0; i < substeps; i++) {
+        for (let i = 0; i < substeps && !sunk.current && !exploded.current; i++) {
           b.x += b.vx / substeps;
           b.y += b.vy / substeps;
 
@@ -408,6 +414,28 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
             } else {
               resolveRect(b, obstacle.x, obstacle.y, obstacle.w, obstacle.h);
             }
+          }
+
+          // Checked after every sub-step, not once per frame: at speed,
+          // the ball can cross clean through the whole capture zone
+          // within a single frame's substeps and never register if this
+          // only ran after the full movement — "a perfect shot went
+          // right through it" was exactly that.
+          const distToHole = Math.hypot(b.x - HOLE.x, b.y - HOLE.y);
+          if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) < MAX_SINK_SPEED && lit) {
+            sunk.current = true;
+            sunkAt.current = now;
+            onWin();
+          } else if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) > 0.01) {
+            // Close enough to sink, but the hole isn't lit (bad timing) or
+            // the ball is moving too fast — bounce off the rim instead.
+            const nx = (b.x - HOLE.x) / (distToHole || 1);
+            const ny = (b.y - HOLE.y) / (distToHole || 1);
+            b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
+            b.y = HOLE.y + ny * HOLE_CAPTURE_RADIUS;
+            const dot = b.vx * nx + b.vy * ny;
+            b.vx = (b.vx - 2 * dot * nx) * 0.7;
+            b.vy = (b.vy - 2 * dot * ny) * 0.7;
           }
         }
         b.vx *= FRICTION;
@@ -434,32 +462,11 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
           }
         }
 
-        const distToHole = Math.hypot(b.x - HOLE.x, b.y - HOLE.y);
-        // Both checks share the same radius — the sink check must get
-        // first refusal exactly where the ball actually enters the hole,
-        // not at some larger outer radius the ball would bounce off of
-        // before ever reaching the real capture zone.
-        if (!exploded.current) {
-          if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) < MAX_SINK_SPEED && lit) {
-            sunk.current = true;
-            sunkAt.current = now;
-            onWin();
-          } else if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) > 0.01) {
-            // Close enough to sink, but the hole isn't lit (bad timing) or
-            // the ball is moving too fast — bounce off the rim instead.
-            const nx = (b.x - HOLE.x) / (distToHole || 1);
-            const ny = (b.y - HOLE.y) / (distToHole || 1);
-            b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
-            b.y = HOLE.y + ny * HOLE_CAPTURE_RADIUS;
-            const dot = b.vx * nx + b.vy * ny;
-            b.vx = (b.vx - 2 * dot * nx) * 0.7;
-            b.vy = (b.vy - 2 * dot * ny) * 0.7;
-          } else if (isResting()) {
-            // Play continues from wherever the ball comes to rest — no
-            // reset to tee on an ordinary miss. Only the laser resets it.
-            b.vx = 0;
-            b.vy = 0;
-          }
+        if (!exploded.current && !sunk.current && isResting()) {
+          // Play continues from wherever the ball comes to rest — no
+          // reset to tee on an ordinary miss. Only the laser resets it.
+          b.vx = 0;
+          b.vy = 0;
         }
       }
 
