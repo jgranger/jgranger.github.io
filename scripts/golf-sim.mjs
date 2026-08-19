@@ -17,7 +17,7 @@ function scaled(x, y) { return { x: x * SCALE, y: y * SCALE }; }
 const BALL_RADIUS = 6;
 const COLLISION_MARGIN = 2;
 const HOLE_CAPTURE_RADIUS = 12;
-const MAX_SINK_SPEED = 7;
+const MAX_SINK_SPEED = 15;
 const FRICTION = 0.985;
 const REST_SPEED = 0.1;
 const MAX_PULL = 217;

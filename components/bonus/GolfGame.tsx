@@ -28,7 +28,12 @@ const BALL_RADIUS = 6;
 // pixels of visual overlap when actually touching one.
 const COLLISION_MARGIN = 2;
 const HOLE_CAPTURE_RADIUS = 12;
-const MAX_SINK_SPEED = 7;
+// A direct putt at anything past very soft power arrives well above the
+// old threshold of 7 (measured: a 40%-power putt from just outside the
+// hole arrives around 9, 60% around 14) — meaning almost any confident,
+// well-aimed putt bounced off no matter how accurate it was. Raised so a
+// firm, deliberate putt sinks; only a genuinely hard slam still bounces.
+const MAX_SINK_SPEED = 15;
 const FRICTION = 0.985;
 const REST_SPEED = 0.1;
 const MAX_PULL = 217;
@@ -40,7 +45,7 @@ const BOUNCE_DAMPING = 0.72;
 // while they're red. Arriving too fast, or while they're white, bounces
 // the ball off instead of sinking.
 const HOLE_BLINK_PERIOD_MS = 1800;
-const HOLE_LIT_DURATION_MS = 500;
+const HOLE_LIT_DURATION_MS = 800;
 const SINK_ANIMATION_MS = 800;
 const EXPLODE_ANIMATION_MS = 550;
 
