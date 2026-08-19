@@ -329,31 +329,40 @@ export function GolfGame({ onWin }: { onWin: () => void }) {
           b.x += b.vx / substeps;
           b.y += b.vy / substeps;
 
-          resolveMask(b, prevX, prevY);
-          for (const orb of ORB_OBSTACLES) {
-            resolveCircle(b, orb.x, orb.y, orb.r);
-          }
-
+          // Checked before wall/mask collision, not after: the mouse
+          // hole is a narrow archway alcove, not open floor, so it
+          // naturally fails ballFits's full-clearance ring test. Running
+          // resolveMask first would bounce the ball off the alcove's
+          // walls before this distance check ever saw it — the hole
+          // could never actually be entered, no matter how good the shot.
           // Checked after every sub-step, not once per frame: at speed,
           // the ball can cross clean through the whole capture zone
           // within a single frame's substeps and never register if this
           // only ran after the full movement — "a perfect shot went
           // right through it" was exactly that.
           const distToHole = Math.hypot(b.x - HOLE.x, b.y - HOLE.y);
-          if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) < MAX_SINK_SPEED && lit) {
-            sunk.current = true;
-            sunkAt.current = now;
-            onWin();
-          } else if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) > 0.01) {
-            // Close enough to sink, but the hole isn't lit (bad timing) or
-            // the ball is moving too fast — bounce off the rim instead.
-            const nx = (b.x - HOLE.x) / (distToHole || 1);
-            const ny = (b.y - HOLE.y) / (distToHole || 1);
-            b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
-            b.y = HOLE.y + ny * HOLE_CAPTURE_RADIUS;
-            const dot = b.vx * nx + b.vy * ny;
-            b.vx = (b.vx - 2 * dot * nx) * 0.7;
-            b.vy = (b.vy - 2 * dot * ny) * 0.7;
+          if (distToHole < HOLE_CAPTURE_RADIUS) {
+            if (speed(b) < MAX_SINK_SPEED && lit) {
+              sunk.current = true;
+              sunkAt.current = now;
+              onWin();
+            } else {
+              // Close enough to sink, but the hole isn't lit (bad timing) or
+              // the ball is moving too fast — bounce off the rim instead.
+              const nx = (b.x - HOLE.x) / (distToHole || 1);
+              const ny = (b.y - HOLE.y) / (distToHole || 1);
+              b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
+              b.y = HOLE.y + ny * HOLE_CAPTURE_RADIUS;
+              const dot = b.vx * nx + b.vy * ny;
+              b.vx = (b.vx - 2 * dot * nx) * 0.7;
+              b.vy = (b.vy - 2 * dot * ny) * 0.7;
+            }
+            continue;
+          }
+
+          resolveMask(b, prevX, prevY);
+          for (const orb of ORB_OBSTACLES) {
+            resolveCircle(b, orb.x, orb.y, orb.r);
           }
         }
         b.vx *= FRICTION;

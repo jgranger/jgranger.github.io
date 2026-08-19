@@ -135,17 +135,19 @@ function simulateShot(from, dragPoint, maxFrames = 2000) {
       const prevX = b.x; const prevY = b.y;
       b.x += b.vx / substeps;
       b.y += b.vy / substeps;
-      resolveMask(b, prevX, prevY);
-      for (const orb of ORB_OBSTACLES) resolveCircle(b, orb.x, orb.y, orb.r);
 
-      // Checked per-substep, matching the real component's fix: a fast
-      // ball can cross the whole capture zone within one frame's worth
-      // of substeps and never register if this only ran once per frame.
+      // Checked before wall/mask collision, matching the real component's
+      // fix: the mouse hole is a narrow archway alcove, not open floor,
+      // so it naturally fails ballFits's full-clearance ring test.
+      // Resolving mask collision first would bounce the ball off the
+      // alcove's walls before this distance check ever saw it, and the
+      // hole could never actually be entered.
       const distToHole = Math.hypot(b.x - HOLE.x, b.y - HOLE.y);
-      if (distToHole < HOLE_CAPTURE_RADIUS && speed(b) < MAX_SINK_SPEED) {
-        reachedHole = true;
-        break;
-      } else if (distToHole < HOLE_CAPTURE_RADIUS) {
+      if (distToHole < HOLE_CAPTURE_RADIUS) {
+        if (speed(b) < MAX_SINK_SPEED) {
+          reachedHole = true;
+          break;
+        }
         const nx = (b.x - HOLE.x) / (distToHole || 1);
         const ny = (b.y - HOLE.y) / (distToHole || 1);
         b.x = HOLE.x + nx * HOLE_CAPTURE_RADIUS;
@@ -153,7 +155,11 @@ function simulateShot(from, dragPoint, maxFrames = 2000) {
         const dot = b.vx * nx + b.vy * ny;
         b.vx = (b.vx - 2 * dot * nx) * 0.7;
         b.vy = (b.vy - 2 * dot * ny) * 0.7;
+        continue;
       }
+
+      resolveMask(b, prevX, prevY);
+      for (const orb of ORB_OBSTACLES) resolveCircle(b, orb.x, orb.y, orb.r);
     }
     if (reachedHole) break;
     b.vx *= FRICTION; b.vy *= FRICTION;
