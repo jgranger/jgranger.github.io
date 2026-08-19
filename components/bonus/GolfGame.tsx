@@ -13,15 +13,21 @@ function scaled(x: number, y: number): { x: number; y: number } {
   return { x: x * SCALE, y: y * SCALE };
 }
 
-const BALL_RADIUS = 9;
+// Shrunk from the original 9/3 (radius+margin=12 effective footprint) —
+// the course's tightest passages and the hole's own archway alcove were
+// only barely wide enough for that footprint, making the whole game
+// frustratingly hard to navigate and the hole itself nearly impossible
+// to enter cleanly. A smaller ball has noticeably more room to maneuver
+// through the same walls/obstacles without the geometry itself changing.
+const BALL_RADIUS = 6;
 // Used for wall/obstacle collision instead of the ball's full visual
 // radius — using BALL_RADIUS there stacks up to a keep-out margin wide
 // enough that the ball visibly can't approach anything closely,
 // especially bad right at the hole. A smaller collision margin lets it
 // nestle much closer to walls and obstacles, at the cost of a few
 // pixels of visual overlap when actually touching one.
-const COLLISION_MARGIN = 3;
-const HOLE_CAPTURE_RADIUS = 10;
+const COLLISION_MARGIN = 2;
+const HOLE_CAPTURE_RADIUS = 12;
 const MAX_SINK_SPEED = 7;
 const FRICTION = 0.985;
 const REST_SPEED = 0.1;
