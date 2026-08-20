@@ -22,6 +22,7 @@ import { FullBleedSection } from "@/components/content/FullBleedSection";
 import { VideoEmbed } from "@/components/media/VideoEmbed";
 import { MermaidDiagram } from "@/components/diagrams/MermaidDiagram";
 import { AnimatedFlow } from "@/components/diagrams/AnimatedFlow";
+import { GalaxyComparison, GoogleGalaxy, AgenticGalaxy } from "@/components/diagrams/GalaxyComparison";
 import { askProductFlow } from "@/content/diagrams/ask-product-flow";
 import { CONTENT_DIR } from "@/lib/contentDir";
 
@@ -35,6 +36,9 @@ const MDX_COMPONENTS = {
   VideoEmbed,
   MermaidDiagram,
   AnimatedFlow: () => <AnimatedFlow data={askProductFlow} />,
+  GalaxyComparison,
+  GoogleGalaxy,
+  AgenticGalaxy,
 };
 
 export function generateStaticParams() {
