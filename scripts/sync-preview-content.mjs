@@ -19,10 +19,10 @@ const IMAGES_OUT_DIR = path.join(ROOT, "public/preview-images");
 const CHAPTERS = [
   { file: "01-one-problem-worth-solving.md", slug: "one-problem-worth-solving", title: "One Problem Worth Solving" },
   { file: "02-the-ideas-factory.md", slug: "the-ideas-factory", title: "The Ideas Factory" },
-  { file: "03-ask-product-from-agent-to-platform.md", slug: "ask-product-from-agent-to-platform", title: "Ask Product - From Agent to Platform" },
+  { file: "03-from-agent-to-platform.md", slug: "from-agent-to-platform", title: "From Agent to Platform" },
   { file: "04-context-engineering.md", slug: "context-engineering", title: "Context Engineering" },
   { file: "05-the-grid-needs-a-guardian.md", slug: "the-grid-needs-a-guardian", title: "The Grid Needs a Guardian" },
-  { file: "06-fastlane.md", slug: "fastlane", title: "Life in the Fast Lane" },
+  { file: "06-life-in-the-fast-lane.md", slug: "fastlane", title: "Life in the Fast Lane" },
   { file: "07-graph-engineering.md", slug: "graph-engineering", title: "Graph Engineering" },
   { file: "08-intelligence-in-the-middle.md", slug: "intelligence-in-the-middle", title: "Intelligence in the Middle" },
   { file: "09-the-flywheel.md", slug: "the-flywheel", title: "The Flywheel" },
