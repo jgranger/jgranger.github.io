@@ -10,7 +10,7 @@ export function VideoEmbed({
   description?: string;
 }) {
   return (
-    <figure className="my-8">
+    <figure className="my-8 mx-auto max-w-sm">
       <video
         controls
         playsInline
