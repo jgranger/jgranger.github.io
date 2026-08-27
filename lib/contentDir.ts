@@ -9,3 +9,10 @@ export const CONTENT_DIR = path.join(
   process.cwd(),
   process.env.PREVIEW_CONTENT_DIR || "content/book"
 );
+
+// Same override, same gitignore guarantee, for the bonus (Konami-code)
+// pages. Falls back to the committed public placeholder otherwise.
+export const BONUS_DIR = path.join(
+  process.cwd(),
+  process.env.PREVIEW_CONTENT_DIR ? "content/book-preview/bonus" : "content/bonus"
+);

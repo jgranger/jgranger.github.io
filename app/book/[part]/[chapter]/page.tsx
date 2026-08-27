@@ -6,10 +6,8 @@ import {
   getFlatChapterList,
 } from "@/lib/content";
 import { ChapterSidebar } from "@/components/publication/ChapterSidebar";
-import { extractHeadings } from "@/lib/headings";
 import { renderMdx } from "@/lib/mdx";
 import { ChapterHeader } from "@/components/publication/ChapterHeader";
-import { ChapterNavigation } from "@/components/publication/ChapterNavigation";
 import { PrevNextNav } from "@/components/publication/PrevNextNav";
 import { ChapterProgress } from "@/components/publication/ChapterProgress";
 import { RecordVisit } from "@/components/publication/RecordVisit";
@@ -60,7 +58,6 @@ export default async function ChapterPage({
     notFound();
   }
 
-  const headings = extractHeadings(chapter.content);
   const adjacent = getAdjacentChapters(CONTENT_DIR, slug);
   const chapters = getFlatChapterList(CONTENT_DIR);
   const body = await renderMdx(chapter.content, MDX_COMPONENTS);
@@ -81,7 +78,6 @@ export default async function ChapterPage({
           title={chapter.meta.title}
           summary={chapter.meta.summary}
         />
-        <ChapterNavigation headings={headings} />
         <article className="prose prose-invert mt-8">{body}</article>
         <PrevNextNav adjacent={adjacent} />
       </main>
