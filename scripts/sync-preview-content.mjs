@@ -11,17 +11,28 @@ import path from "node:path";
 const ROOT = process.cwd();
 const SOURCE_DIR = path.join(ROOT, "docs/private/chapters");
 const OUTPUT_DIR = path.join(ROOT, "content/book-preview/book");
+const BONUS_SOURCE_DIR = path.join(ROOT, "docs/private/bonus");
+const BONUS_OUTPUT_DIR = path.join(ROOT, "content/book-preview/bonus");
 const PRIVATE_DIR = path.join(ROOT, "docs/private");
 const IMAGES_OUT_DIR = path.join(ROOT, "public/preview-images");
+
+// Bonus (Konami-code) pages. Each maps one private draft file to the slug
+// its page component reads (see app/for-the-users/page.tsx and friends).
+// The page title stays fixed regardless of the draft's own heading — the
+// page's identity is "For the Users"; the draft's heading is just the
+// current bonus chapter's title within it.
+const BONUS_PAGES = [
+  { file: "the-multiplier.md", slug: "for-the-users", title: "For the Users" },
+];
 
 // Order matches docs/private/book-vision.md's current Chapter Structure
 // exactly. Update this list if that order ever changes.
 const CHAPTERS = [
   { file: "01-one-problem-worth-solving.md", slug: "one-problem-worth-solving", title: "One Problem Worth Solving" },
   { file: "02-the-ideas-factory.md", slug: "the-ideas-factory", title: "The Ideas Factory" },
-  { file: "03-from-agent-to-platform.md", slug: "from-agent-to-platform", title: "From Agent to Platform" },
+  { file: "03-context-engineering.md", slug: "context-engineering", title: "Context Engineering" },
   { file: "04-the-grid-needs-a-guardian.md", slug: "the-grid-needs-a-guardian", title: "The Grid Needs a Guardian" },
-  { file: "05-context-engineering.md", slug: "context-engineering", title: "Context Engineering" },
+  { file: "05-from-agent-to-platform.md", slug: "from-agent-to-platform", title: "From Agent to Platform" },
   { file: "06-life-in-the-fast-lane.md", slug: "fastlane", title: "Life in the Fast Lane" },
   { file: "07-graph-engineering.md", slug: "graph-engineering", title: "Graph Engineering" },
   { file: "08-intelligence-in-the-middle.md", slug: "intelligence-in-the-middle", title: "Intelligence in the Middle" },
@@ -174,4 +185,39 @@ console.log(
   `Synced ${synced} chapter(s) into ${path.relative(ROOT, OUTPUT_DIR)}/ ` +
     `and ${imageMap.size} image(s) into ${path.relative(ROOT, IMAGES_OUT_DIR)}/` +
     (missing ? ` (${missing} chapter file(s) missing)` : "")
+);
+
+fs.rmSync(BONUS_OUTPUT_DIR, { recursive: true, force: true });
+fs.mkdirSync(BONUS_OUTPUT_DIR, { recursive: true });
+
+let bonusSynced = 0;
+let bonusMissing = 0;
+
+BONUS_PAGES.forEach((page) => {
+  const sourcePath = path.join(BONUS_SOURCE_DIR, page.file);
+  if (!fs.existsSync(sourcePath)) {
+    console.warn(`  (missing, skipped) bonus/${page.file}`);
+    bonusMissing += 1;
+    return;
+  }
+
+  const raw = fs.readFileSync(sourcePath, "utf-8");
+  const withoutHeading = stripLeadingHeading(raw, page.title);
+  const body = rewriteImages(withoutHeading, imageMap);
+
+  const frontmatter = [
+    "---",
+    `title: ${yamlString(page.title)}`,
+    `summary: ${yamlString("")}`,
+    "---",
+    "",
+  ].join("\n");
+
+  fs.writeFileSync(path.join(BONUS_OUTPUT_DIR, `${page.slug}.mdx`), frontmatter + body);
+  bonusSynced += 1;
+});
+
+console.log(
+  `Synced ${bonusSynced} bonus page(s) into ${path.relative(ROOT, BONUS_OUTPUT_DIR)}/` +
+    (bonusMissing ? ` (${bonusMissing} bonus file(s) missing)` : "")
 );

@@ -6,14 +6,11 @@ import { getFlatChapterList } from "@/lib/content";
 import { ChapterSidebar } from "@/components/publication/ChapterSidebar";
 import { ForTheUsersReveal } from "@/components/bonus/ForTheUsersReveal";
 import { PlayGate } from "@/components/bonus/PlayGate";
-import { CONTENT_DIR } from "@/lib/contentDir";
+import { CONTENT_DIR, BONUS_DIR } from "@/lib/contentDir";
 
 // Not linked from navigation, the table of contents, or any sitemap.
 // Reachable only via the Konami code (see components/KonamiListener.tsx).
-const BONUS_FILE = path.join(
-  process.cwd(),
-  "content/bonus/for-the-users.mdx"
-);
+const BONUS_FILE = path.join(BONUS_DIR, "for-the-users.mdx");
 
 export const metadata = {
   title: "For the Users",
