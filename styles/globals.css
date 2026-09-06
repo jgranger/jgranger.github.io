@@ -28,12 +28,12 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
 
-  --text-h1: clamp(3rem, 2.47rem + 2.25vw, 4.5rem);
-  --text-h1--line-height: clamp(4rem, 3.47rem + 2.25vw, 5.5rem);
-  --text-h2: clamp(2.5rem, 2.15rem + 1.5vw, 3.5rem);
-  --text-h2--line-height: clamp(3rem, 2.65rem + 1.5vw, 4rem);
-  --text-h3: clamp(2rem, 1.82rem + 0.75vw, 2.5rem);
-  --text-h3--line-height: clamp(2.5rem, 2.32rem + 0.75vw, 3rem);
+  --text-h1: clamp(2.25rem, 1.7rem + 2.8vw, 4.5rem);
+  --text-h1--line-height: 1.08;
+  --text-h2: clamp(1.9rem, 1.5rem + 2vw, 3.5rem);
+  --text-h2--line-height: 1.12;
+  --text-h3: clamp(1.6rem, 1.35rem + 1.25vw, 2.5rem);
+  --text-h3--line-height: 1.18;
   --text-h4: clamp(1.25rem, 1.16rem + 0.38vw, 1.5rem);
   --text-h4--line-height: 2rem;
   --text-h5: clamp(1.25rem, 1.16rem + 0.38vw, 1.5rem);
@@ -44,16 +44,16 @@
   --text-lead--line-height: clamp(1.9rem, 1.7rem + 0.85vw, 2.35rem);
   --text-p1: clamp(1.125rem, 1.02rem + 0.5vw, 1.375rem);
   --text-p1--line-height: clamp(1.9rem, 1.7rem + 0.85vw, 2.35rem);
-  --text-p2: clamp(0.75rem, 0.71rem + 0.19vw, 0.875rem);
-  --text-p2--line-height: clamp(1rem, 0.91rem + 0.38vw, 1.25rem);
+  --text-p2: clamp(0.875rem, 0.84rem + 0.15vw, 1rem);
+  --text-p2--line-height: 1.5;
   --text-small: clamp(0.625rem, 0.58rem + 0.19vw, 0.75rem);
   --text-small--line-height: clamp(0.875rem, 0.83rem + 0.19vw, 1rem);
   --text-eyebrow: clamp(0.625rem, 0.58rem + 0.19vw, 0.75rem);
   --text-eyebrow--line-height: clamp(0.75rem, 0.71rem + 0.19vw, 0.875rem);
   --text-eyebrow--letter-spacing: 0.0625rem;
 
-  --width-reading: min(92vw, 76rem);
-  --width-wide: min(94vw, 84rem);
+  --width-reading: min(100%, 48rem);
+  --width-wide: min(100%, 84rem);
 }
 
 /*
@@ -123,7 +123,7 @@
      the header is short enough that cropping hides most of the image, so
      it stretches to show the image in full instead. */
   .hero-grid {
-    min-height: 28rem;
+    min-height: min(32rem, 76svh);
     background-image:
       linear-gradient(
         135deg,
@@ -214,13 +214,23 @@
 }
 
 @layer base {
-  html { font-family: var(--font-sans); }
-  body { background: var(--color-background); color: var(--color-foreground); }
+  html { overflow-x: clip; font-family: var(--font-sans); -webkit-text-size-adjust: 100%; }
+  body { min-width: 20rem; overflow-x: clip; background: var(--color-background); color: var(--color-foreground); }
   h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 600; }
+
+  body:has(.home-page) > header,
+  body:has(.home-page) > footer { display: none; }
+
+  img, video, canvas, svg, iframe { max-width: 100%; }
 
   /* Screenshots/figures embedded in chapter prose get the same glowing
      frame as other cards, instead of a bare image on the dark background. */
   .prose img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
     background: var(--color-background-elevated);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
@@ -245,4 +255,48 @@
   max-width: none;
   font-size: var(--text-p1);
   line-height: var(--text-p1--line-height);
+  overflow-wrap: anywhere;
+}
+
+.prose pre,
+.prose table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.prose table {
+  display: block;
+  white-space: nowrap;
+}
+
+.prose iframe {
+  width: 100%;
+}
+
+.prose .mermaid svg {
+  height: auto;
+}
+
+@media (max-width: 639px) {
+  .hero-grid {
+    min-height: min(27rem, 72svh);
+    background-size: cover, auto 100%;
+  }
+
+  .prose {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
+
+  .prose h2 {
+    margin-top: 2.5rem;
+  }
+
+  .prose h3 {
+    margin-top: 2rem;
+  }
+
+  .prose img {
+    padding: 0.25rem;
+  }
 }

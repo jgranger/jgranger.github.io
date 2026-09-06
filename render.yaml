@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: agentic-journey
+    runtime: static
+    branch: main
+    buildCommand: npm ci && npm test && npm run build
+    staticPublishPath: out
+    autoDeployTrigger: commit
+    previews:
+      generation: automatic

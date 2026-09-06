@@ -5,19 +5,19 @@ import { usePathname } from "next/navigation";
 
 export function Header() {
   const pathname = usePathname();
-  // The homepage hero already shows a full grid directly beneath the
-  // header, so repeating the (cropped) grid here would just duplicate it.
   const isHome = pathname === "/";
 
+  if (isHome) {
+    return null;
+  }
+
   return (
-    <header
-      className={`${isHome ? "" : "header-grid "}flex items-center justify-between px-4 py-6 max-w-(--width-wide) mx-auto border-b border-border`}
-    >
-      <Link href="/" className="text-h6 font-heading">
+    <header className="header-grid mx-auto flex max-w-(--width-wide) items-center justify-between border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+      <Link href="/" className="flex min-h-11 items-center text-h6 font-heading">
         Agentic Journey
       </Link>
-      <nav className="flex gap-6 text-p2">
-        <Link href="/about/">About</Link>
+      <nav className="flex gap-3 text-p2 sm:gap-6">
+        <Link href="/about/" className="flex min-h-11 items-center px-2">About</Link>
       </nav>
     </header>
   );

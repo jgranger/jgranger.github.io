@@ -10,7 +10,7 @@ export function ChapterHeader({
   summary: string;
 }) {
   return (
-    <header className="mb-10">
+    <header className="mb-8 sm:mb-10">
       <p className="text-eyebrow text-foreground-subtle">
         {partTitle} · Chapter {chapterNumber}
       </p>
