@@ -29,7 +29,7 @@ export function AnimatedFlow({ data }: { data: FlowData }) {
   }, [playing, stepIndex, totalSteps]);
 
   return (
-    <div className="my-8 rounded-lg border border-border p-6">
+    <div className="my-8 rounded-lg border border-border p-4 sm:p-6">
       <div className="flex flex-wrap gap-3 mb-6">
         {data.nodes.map((node) => (
           <div
@@ -50,7 +50,7 @@ export function AnimatedFlow({ data }: { data: FlowData }) {
         {currentStep.text}
       </p>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => {
@@ -58,12 +58,14 @@ export function AnimatedFlow({ data }: { data: FlowData }) {
             setStepIndex((i) => previousStepIndex(i, totalSteps));
           }}
           disabled={stepIndex === 0}
+          className="min-h-11 rounded-md border border-border px-3 py-2 disabled:opacity-40"
         >
           Previous
         </button>
         <button
           type="button"
           onClick={() => setPlaying((p) => !p)}
+          className="min-h-11 rounded-md border border-border px-3 py-2"
         >
           {playing ? "Pause" : "Play"}
         </button>
@@ -74,6 +76,7 @@ export function AnimatedFlow({ data }: { data: FlowData }) {
             setStepIndex((i) => nextStepIndex(i, totalSteps));
           }}
           disabled={stepIndex === totalSteps - 1}
+          className="min-h-11 rounded-md border border-border px-3 py-2 disabled:opacity-40"
         >
           Next
         </button>
@@ -83,6 +86,7 @@ export function AnimatedFlow({ data }: { data: FlowData }) {
             setPlaying(false);
             setStepIndex(clampStepIndex(0, totalSteps));
           }}
+          className="min-h-11 rounded-md border border-border px-3 py-2"
         >
           Restart
         </button>

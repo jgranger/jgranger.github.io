@@ -25,5 +25,5 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     };
   }, [chart, id]);
 
-  return <div ref={containerRef} className="my-8 overflow-x-auto" />;
+  return <div ref={containerRef} className="mermaid my-8 max-w-full overflow-x-auto" />;
 }

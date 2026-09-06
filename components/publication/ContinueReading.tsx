@@ -37,7 +37,7 @@ export function ContinueReading() {
   return (
     <Link
       href={`/book/${chapter.part}/${chapter.slug}/`}
-      className="inline-block rounded-lg bg-accent text-accent-foreground px-6 py-3 text-p1"
+      className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-accent px-6 py-3 text-center text-p1 text-accent sm:w-auto"
     >
       Continue reading: {chapter.title}
     </Link>
