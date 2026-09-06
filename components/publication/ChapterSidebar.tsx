@@ -61,7 +61,7 @@ export function ChapterSidebar({
                       : "text-foreground-subtle hover:text-accent italic"
                   }
                 >
-                  12. For the Users
+                  13. For the Users
                 </Link>
               </li>
             )}
@@ -75,7 +75,7 @@ export function ChapterSidebar({
                       : "text-foreground-subtle hover:text-accent italic"
                   }
                 >
-                  13. Full Access
+                  14. Full Access
                 </Link>
               </li>
             )}
