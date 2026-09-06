@@ -25,9 +25,9 @@ export default async function FullAccessPage() {
   const chapters = getFlatChapterList(CONTENT_DIR);
 
   return (
-    <div className="max-w-(--width-wide) mx-auto px-4 py-16 flex flex-col lg:flex-row lg:gap-12">
+    <div className="mx-auto max-w-(--width-wide) px-4 py-8 sm:px-6 sm:py-12 lg:flex lg:gap-12 lg:py-16">
       <ChapterSidebar chapters={chapters} currentSlug="full-access" />
-      <main className="max-w-(--width-reading) w-full">
+      <main className="min-w-0 max-w-(--width-reading) w-full">
         <header className="mb-10">
           <h1 className="text-h1 mt-2">{data.title}</h1>
         </header>

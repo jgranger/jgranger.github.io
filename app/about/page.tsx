@@ -8,7 +8,7 @@ export default async function AboutPage() {
   const body = await renderMdx(source, {});
 
   return (
-    <main className="max-w-(--width-reading) mx-auto px-4 py-16 prose">
+    <main className="prose mx-auto max-w-(--width-reading) px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
       {body}
     </main>
   );

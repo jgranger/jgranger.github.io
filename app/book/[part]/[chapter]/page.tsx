@@ -63,9 +63,9 @@ export default async function ChapterPage({
   const body = await renderMdx(chapter.content, MDX_COMPONENTS);
 
   return (
-    <div className="max-w-(--width-wide) mx-auto px-4 py-16 flex flex-col lg:flex-row lg:gap-12">
+    <div className="max-w-(--width-wide) mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:flex lg:gap-12 lg:py-16">
       <ChapterSidebar chapters={chapters} currentSlug={slug} />
-      <main className="max-w-(--width-reading) w-full">
+      <main className="min-w-0 max-w-(--width-reading) w-full">
         <ChapterProgress />
         <RecordVisit
           title={chapter.meta.title}
