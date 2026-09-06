@@ -23,6 +23,16 @@ import { AnimatedFlow } from "@/components/diagrams/AnimatedFlow";
 import { GalaxyComparison, GoogleGalaxy, AgenticGalaxy } from "@/components/diagrams/GalaxyComparison";
 import { askProductFlow } from "@/content/diagrams/ask-product-flow";
 import { CONTENT_DIR } from "@/lib/contentDir";
+import type { TocEntry } from "@/types/content";
+
+const CITATION_CHAPTER: TocEntry = {
+  title: "Citation Graph",
+  slug: "citation-graph",
+  part: "references",
+  chapterNumber: 12,
+  summary: "Follow the ideas in the book back through the research, production experience and independent convergence behind them.",
+  status: "published",
+};
 
 const MDX_COMPONENTS = {
   Callout,
@@ -59,7 +69,11 @@ export default async function ChapterPage({
   }
 
   const adjacent = getAdjacentChapters(CONTENT_DIR, slug);
-  const chapters = getFlatChapterList(CONTENT_DIR);
+  if (slug === "looking-forward") {
+    adjacent.next = CITATION_CHAPTER;
+  }
+
+  const chapters = [...getFlatChapterList(CONTENT_DIR), CITATION_CHAPTER];
   const body = await renderMdx(chapter.content, MDX_COMPONENTS);
 
   return (
