@@ -27,13 +27,13 @@ export function ChapterSidebar({
         onClick={() => setMobileOpen((open) => !open)}
         aria-expanded={mobileOpen}
         aria-controls="chapter-sidebar"
-        className="lg:hidden mb-6 text-p2 text-accent border border-border rounded-md px-3 py-2"
+        className="mb-6 flex min-h-12 w-full items-center justify-center rounded-lg border border-border px-4 py-3 text-p2 text-accent lg:hidden"
       >
         {mobileOpen ? "Hide chapters" : "All chapters"}
       </button>
       <aside
         id="chapter-sidebar"
-        className={`${mobileOpen ? "block" : "hidden"} lg:block lg:sticky lg:top-8 lg:self-start w-full lg:w-56 shrink-0 mb-8 lg:mb-0`}
+        className={`${mobileOpen ? "block" : "hidden"} mb-8 w-full shrink-0 rounded-lg border border-border bg-background-elevated p-3 lg:sticky lg:top-8 lg:mb-0 lg:block lg:w-56 lg:self-start lg:border-0 lg:bg-transparent lg:p-0`}
       >
         <nav aria-label="All chapters">
           <ul className="space-y-2 text-p2">
@@ -41,11 +41,11 @@ export function ChapterSidebar({
               <li key={chapter.slug}>
                 <Link
                   href={`/book/${chapter.part}/${chapter.slug}/`}
-                  className={
+                  className={`block min-h-11 rounded-md px-3 py-2.5 lg:min-h-0 lg:px-0 lg:py-1 ${
                     chapter.slug === currentSlug
                       ? "text-accent font-medium"
                       : "text-foreground-secondary hover:text-accent"
-                  }
+                  }`}
                 >
                   {chapter.chapterNumber}. {chapter.title}
                 </Link>
