@@ -50,6 +50,11 @@ export const citationNodes: CitationNode[] = [
         url: "https://www.trychroma.com/research/context-rot",
         kind: "article",
       },
+      {
+        label: "Is GraphRAG Needed?",
+        url: "https://arxiv.org/abs/2606.25656",
+        kind: "paper",
+      },
     ],
   },
   {
@@ -104,6 +109,28 @@ export const citationNodes: CitationNode[] = [
     ],
   },
   {
+    id: "graphrag-context",
+    title: "GraphRAG + Context Optimization",
+    type: "research",
+    subtitle: "Tian et al., 2026",
+    summary:
+      "Graph and agentic retrieval can improve access to evidence, but retrieving more does not automatically improve generation. Context optimization reduced token usage while preserving or improving answer quality, reinforcing the need to converge on the smallest useful subgraph.",
+    x: 615,
+    y: 265,
+    links: [
+      {
+        label: "Is GraphRAG Needed? From Basic RAG to Graph-/Agentic Solutions with Context Optimization",
+        url: "https://arxiv.org/abs/2606.25656",
+        kind: "paper",
+      },
+      {
+        label: "Amazon Science publication",
+        url: "https://www.amazon.science/publications/is-graphrag-needed-from-basic-rag-to-graph-agentic-solutions-with-context-optimization",
+        kind: "article",
+      },
+    ],
+  },
+  {
     id: "graph-engineering",
     title: "Graph Engineering",
     type: "concept",
@@ -117,6 +144,11 @@ export const citationNodes: CitationNode[] = [
       {
         label: "Circuit Tracing",
         url: "https://www.transformer-circuits.pub/2025/attribution-graphs/methods.html",
+        kind: "paper",
+      },
+      {
+        label: "Is GraphRAG Needed?",
+        url: "https://arxiv.org/abs/2606.25656",
         kind: "paper",
       },
       {
@@ -280,7 +312,9 @@ export const citationEdges: CitationEdge[] = [
   { source: "operational-context", target: "context-engineering", relationship: "independent convergence" },
   { source: "operational-context", target: "context-rot", relationship: "supports" },
   { source: "operational-context", target: "lima", relationship: "supports" },
+  { source: "operational-context", target: "graphrag-context", relationship: "supports" },
   { source: "operational-context", target: "graph-engineering", relationship: "extends" },
+  { source: "graph-engineering", target: "graphrag-context", relationship: "independent convergence" },
   { source: "graph-engineering", target: "circuit-tracing", relationship: "independent convergence" },
   { source: "graph-engineering", target: "multi-agent", relationship: "supports" },
   { source: "multi-agent", target: "intelligence-middle", relationship: "supports" },
