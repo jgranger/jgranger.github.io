@@ -55,6 +55,16 @@ export const citationNodes: CitationNode[] = [
         url: "https://arxiv.org/abs/2606.25656",
         kind: "paper",
       },
+      {
+        label: "Evaluating Long-Context Question & Answer Systems",
+        url: "https://eugeneyan.com/writing/qa-evals/",
+        kind: "article",
+      },
+      {
+        label: "Interacting with LLMs with Minimal Chat",
+        url: "https://eugeneyan.com/writing/llm-ux/",
+        kind: "article",
+      },
     ],
   },
   {
@@ -87,6 +97,28 @@ export const citationNodes: CitationNode[] = [
       {
         label: "Read the research",
         url: "https://www.trychroma.com/research/context-rot",
+        kind: "article",
+      },
+    ],
+  },
+  {
+    id: "yan-context",
+    title: "Context Before Chat",
+    type: "research",
+    subtitle: "Eugene Yan",
+    summary:
+      "Useful context already exists in behavior, history, environment and prior artifacts. Systems should retrieve and organize that context rather than forcing users to restate the world every time.",
+    x: 160,
+    y: 455,
+    links: [
+      {
+        label: "Interacting with LLMs with Minimal Chat",
+        url: "https://eugeneyan.com/writing/llm-ux/",
+        kind: "article",
+      },
+      {
+        label: "Evaluating Long-Context Question & Answer Systems",
+        url: "https://eugeneyan.com/writing/qa-evals/",
         kind: "article",
       },
     ],
@@ -198,6 +230,23 @@ export const citationNodes: CitationNode[] = [
     ],
   },
   {
+    id: "yan-news-agents",
+    title: "News Agents",
+    type: "research",
+    subtitle: "Eugene Yan, 2025",
+    summary:
+      "A coordinating agent splits an information space across three subagents, lets them work in separate contexts and recombines their results into one final artifact.",
+    x: 1080,
+    y: 650,
+    links: [
+      {
+        label: "Building News Agents for Daily News Recaps",
+        url: "https://eugeneyan.com/writing/news-agents/",
+        kind: "article",
+      },
+    ],
+  },
+  {
     id: "intelligence-middle",
     title: "Intelligence in the Middle",
     type: "concept",
@@ -211,6 +260,11 @@ export const citationNodes: CitationNode[] = [
       {
         label: "Anthropic multi-agent research system",
         url: "https://www.anthropic.com/engineering/multi-agent-research-system",
+        kind: "article",
+      },
+      {
+        label: "Building News Agents for Daily News Recaps",
+        url: "https://eugeneyan.com/writing/news-agents/",
         kind: "article",
       },
       {
@@ -241,6 +295,38 @@ export const citationNodes: CitationNode[] = [
         url: "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
         kind: "article",
       },
+      {
+        label: "Evaluating the Effectiveness of LLM-Evaluators",
+        url: "https://eugeneyan.com/writing/llm-evaluators/",
+        kind: "article",
+      },
+      {
+        label: "An LLM-as-Judge Won't Save The Product",
+        url: "https://eugeneyan.com/writing/eval-process/",
+        kind: "article",
+      },
+    ],
+  },
+  {
+    id: "yan-evals",
+    title: "Evaluating the Evaluator",
+    type: "research",
+    subtitle: "Eugene Yan",
+    summary:
+      "LLM judges vary by task, can miss obvious quality drops and must themselves be calibrated against human judgment and real product failures.",
+    x: 390,
+    y: 735,
+    links: [
+      {
+        label: "Evaluating the Effectiveness of LLM-Evaluators",
+        url: "https://eugeneyan.com/writing/llm-evaluators/",
+        kind: "article",
+      },
+      {
+        label: "An LLM-as-Judge Won't Save The Product",
+        url: "https://eugeneyan.com/writing/eval-process/",
+        kind: "article",
+      },
     ],
   },
   {
@@ -255,6 +341,11 @@ export const citationNodes: CitationNode[] = [
     y: 590,
     links: [
       {
+        label: "How to Work and Compound with AI",
+        url: "https://eugeneyan.com/writing/working-with-ai/",
+        kind: "article",
+      },
+      {
         label: "Grant and Dweck on achievement goals",
         url: "https://pubmed.ncbi.nlm.nih.gov/14498789/",
         kind: "paper",
@@ -263,6 +354,23 @@ export const citationNodes: CitationNode[] = [
         label: "Deep reinforcement learning from human preferences",
         url: "https://arxiv.org/abs/1706.03741",
         kind: "paper",
+      },
+    ],
+  },
+  {
+    id: "yan-compound",
+    title: "Work and Compound with AI",
+    type: "research",
+    subtitle: "Eugene Yan, 2026",
+    summary:
+      "Finished artifacts become context for future work, corrections update the configuration and organized context becomes infrastructure through which capability compounds over time.",
+    x: 80,
+    y: 680,
+    links: [
+      {
+        label: "How to Work and Compound with AI",
+        url: "https://eugeneyan.com/writing/working-with-ai/",
+        kind: "article",
       },
     ],
   },
@@ -311,6 +419,7 @@ export const citationNodes: CitationNode[] = [
 export const citationEdges: CitationEdge[] = [
   { source: "operational-context", target: "context-engineering", relationship: "independent convergence" },
   { source: "operational-context", target: "context-rot", relationship: "supports" },
+  { source: "operational-context", target: "yan-context", relationship: "independent convergence" },
   { source: "operational-context", target: "lima", relationship: "supports" },
   { source: "operational-context", target: "graphrag-context", relationship: "supports" },
   { source: "operational-context", target: "graph-engineering", relationship: "extends" },
@@ -318,8 +427,11 @@ export const citationEdges: CitationEdge[] = [
   { source: "graph-engineering", target: "circuit-tracing", relationship: "independent convergence" },
   { source: "graph-engineering", target: "multi-agent", relationship: "supports" },
   { source: "multi-agent", target: "intelligence-middle", relationship: "supports" },
+  { source: "yan-news-agents", target: "intelligence-middle", relationship: "independent convergence" },
   { source: "intelligence-middle", target: "self-replication", relationship: "extends" },
   { source: "learning-flywheel", target: "bitbot", relationship: "implemented as" },
+  { source: "yan-evals", target: "bitbot", relationship: "supports" },
+  { source: "learning-flywheel", target: "yan-compound", relationship: "independent convergence" },
   { source: "learning-flywheel", target: "self-replication", relationship: "extends" },
   { source: "self-replication", target: "agent-skills", relationship: "independent convergence" },
   { source: "bitbot", target: "operational-context", relationship: "observed in production" },
