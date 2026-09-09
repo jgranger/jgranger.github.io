@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { citationNodes, type CitationNode } from "@/content/citation-graph";
+import { isWebGLAvailable } from "@/lib/webgl";
 
 type VisualNode = {
   id: string;
@@ -199,6 +200,11 @@ function relatedTitles(title: string, links: VisualLink[]) {
 
 export function CitationGraph() {
   const [scriptReady, setScriptReady] = useState(false);
+  // null = not checked yet (avoids an SSR/hydration mismatch, since
+  // WebGL availability can only be known in the browser). Checked once
+  // on mount rather than assumed, because the 3D graph library throws
+  // instead of degrading gracefully when no context is available.
+  const [webglReady, setWebglReady] = useState<boolean | null>(null);
   const [selectedTitle, setSelectedTitle] = useState(citationNodes[0]?.title ?? "");
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<ForceGraphInstance | null>(null);
@@ -220,10 +226,31 @@ export function CitationGraph() {
   }, [graphData.links, selectedTitle]);
 
   useEffect(() => {
+    setWebglReady(isWebGLAvailable());
+  }, []);
+
+  useEffect(() => {
     if (!scriptReady || !containerRef.current || !window.ForceGraph3D) return;
 
     const container = containerRef.current;
-    const graph = new window.ForceGraph3D(container, { controlType: "orbit" });
+    let graph: ForceGraphInstance;
+    try {
+      // three.js's WebGLRenderer constructor throws synchronously when it
+      // can't get a context — an upfront canvas.getContext("webgl") probe
+      // (isWebGLAvailable) isn't a reliable predictor of this on its own,
+      // since it doesn't request the same context attributes three.js
+      // does, and some environments (ANGLE/Mesa llvmpipe software
+      // rendering with a GPU-process IPC failure) pass a basic probe but
+      // still fail here. This try/catch is the actual safety net.
+      graph = new window.ForceGraph3D(container, { controlType: "orbit" });
+    } catch (err) {
+      console.warn(
+        "CitationGraph: falling back to list view, ForceGraph3D construction failed",
+        err,
+      );
+      setWebglReady(false);
+      return;
+    }
 
     graphRef.current = graph;
 
@@ -323,6 +350,69 @@ export function CitationGraph() {
   }, [graphData, scriptReady]);
 
   if (!selected) return null;
+
+  // No WebGL context available (e.g. software-rendered/llvmpipe setups,
+  // where three.js throws instead of degrading gracefully) — the citation
+  // positions are precomputed, not physics-simulated, so a flat list loses
+  // the visual flourish but none of the actual information.
+  if (webglReady === false) {
+    const grouped = citationNodes.reduce<Record<string, CitationNode[]>>(
+      (acc, node) => {
+        const key = node.kind ?? "research";
+        (acc[key] ??= []).push(node);
+        return acc;
+      },
+      {},
+    );
+
+    return (
+      <div className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl shadow-black/20">
+        <p className="text-sm text-white/60">
+          The interactive 3D graph needs a WebGL-capable browser/GPU, which
+          isn&apos;t available here. Here are the same citations as a list.
+        </p>
+        <div className="mt-6 space-y-8">
+          {Object.entries(grouped).map(([kind, nodes]) => (
+            <div key={kind}>
+              <h3 className="text-xs uppercase tracking-[0.2em] text-cyan-300/70">
+                {kindLabel[kind as NonNullable<CitationNode["kind"]>]}
+              </h3>
+              <ul className="mt-3 space-y-4">
+                {nodes.map((node) => (
+                  <li
+                    key={node.title}
+                    className="rounded-2xl border border-white/10 bg-white/[0.035] p-4"
+                  >
+                    <div className="flex items-baseline justify-between gap-4">
+                      <h4 className="font-semibold text-white">{node.title}</h4>
+                      {node.chapter ? (
+                        <span className="shrink-0 text-xs text-white/50">
+                          Chapter {node.chapter}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-white/75">
+                      {node.description}
+                    </p>
+                    <a
+                      href={node.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-block text-sm font-medium text-cyan-300/90 hover:text-cyan-300"
+                    >
+                      Open link
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (webglReady === null) return null;
 
   return (
     <>
