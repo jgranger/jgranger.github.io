@@ -6,6 +6,7 @@ import {
   getPublishedChapters,
   getChapterBySlug,
   getTableOfContents,
+  getFlatChapterList,
   getAdjacentChapters,
 } from "./content";
 
@@ -45,7 +46,7 @@ describe("getChapterBySlug", () => {
 });
 
 describe("getTableOfContents", () => {
-  it("groups published chapters by part, excluding drafts", () => {
+  it("groups published chapters by part, excluding drafts, numbered by reading order not per-part frontmatter", () => {
     const toc = getTableOfContents(FIXTURE_DIR);
     expect(toc).toEqual([
       {
@@ -70,12 +71,27 @@ describe("getTableOfContents", () => {
             title: "Third Chapter",
             slug: "third-chapter",
             part: "part-b",
-            chapterNumber: 1,
+            // Not 1, even though this chapter's own frontmatter
+            // chapterNumber is 1 (per-part numbering resets in every
+            // part) — it's the second published chapter in actual
+            // reading order, with a draft chapter between it and the
+            // first.
+            chapterNumber: 2,
             summary: "The third chapter summary.",
             status: "published",
           },
         ],
       },
+    ]);
+  });
+});
+
+describe("getFlatChapterList", () => {
+  it("numbers chapters sequentially by reading order, not by resetting per part", () => {
+    const flat = getFlatChapterList(FIXTURE_DIR);
+    expect(flat.map((c) => [c.slug, c.chapterNumber])).toEqual([
+      ["first-chapter", 1],
+      ["third-chapter", 2],
     ]);
   });
 });
