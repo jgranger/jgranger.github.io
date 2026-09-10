@@ -6,25 +6,14 @@ import { ChapterProgress } from "@/components/publication/ChapterProgress";
 import { RecordVisit } from "@/components/publication/RecordVisit";
 import { getFlatChapterList } from "@/lib/content";
 import { CONTENT_DIR } from "@/lib/contentDir";
-import type { TocEntry } from "@/types/content";
-
-const CITATION_CHAPTER: TocEntry = {
-  title: "Citation Graph",
-  slug: "citation-graph",
-  part: "references",
-  chapterNumber: 12,
-  summary: "Follow the ideas in the book back through the research, production experience and independent convergence behind them.",
-  status: "published",
-};
 
 export default function CitationGraphChapter() {
   const bookChapters = getFlatChapterList(CONTENT_DIR);
-  const chapters = [...bookChapters, CITATION_CHAPTER];
   const lookingForward = bookChapters.find((chapter) => chapter.slug === "looking-forward") ?? null;
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:flex lg:gap-12 lg:py-16">
-      <ChapterSidebar chapters={chapters} currentSlug="citation-graph" />
+      <ChapterSidebar chapters={bookChapters} currentSlug="citation-graph" />
       <main className="min-w-0 w-full">
         <ChapterProgress />
         <RecordVisit
@@ -35,7 +24,6 @@ export default function CitationGraphChapter() {
         <div className="max-w-(--width-reading)">
           <ChapterHeader
             partTitle="References"
-            chapterNumber={12}
             title="Citation Graph"
             summary="The ideas in this book did not develop in isolation. This graph shows where our production experience intersects with research, writing and independent discoveries made elsewhere."
           />

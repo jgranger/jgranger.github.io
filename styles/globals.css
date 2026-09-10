@@ -117,24 +117,9 @@
 
   /* Shared Tron atmosphere: a blue-to-purple gradient wash plus Jon's
      perspective grid image (public/hero-grid.png). Plain CSS
-     background-image — it can never intercept a click. Hero and header
-     use different background-size for the grid layer: the hero has real
-     height to work with (crop to a fixed slice, bottom-anchored), while
-     the header is short enough that cropping hides most of the image, so
-     it stretches to show the image in full instead. */
-  .hero-grid {
-    min-height: min(32rem, 76svh);
-    background-image:
-      linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--accent-cyan) 15%, transparent),
-        color-mix(in oklab, var(--accent-violet) 15%, transparent)
-      ),
-      url("/hero-grid.png");
-    background-repeat: no-repeat, no-repeat;
-    background-size: cover, 100% 220px;
-    background-position: center, bottom center;
-  }
+     background-image — it can never intercept a click. The header is
+     short enough that cropping would hide most of the image, so it
+     stretches to show the image in full instead. */
   .header-grid {
     background-image:
       linear-gradient(
@@ -218,9 +203,6 @@
   body { min-width: 20rem; overflow-x: clip; background: var(--color-background); color: var(--color-foreground); }
   h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 600; }
 
-  body:has(.home-page) > header,
-  body:has(.home-page) > footer { display: none; }
-
   img, video, canvas, svg, iframe { max-width: 100%; }
 
   /* Screenshots/figures embedded in chapter prose get the same glowing
@@ -278,11 +260,6 @@
 }
 
 @media (max-width: 639px) {
-  .hero-grid {
-    min-height: min(27rem, 72svh);
-    background-size: cover, auto 100%;
-  }
-
   .prose {
     font-size: 1.0625rem;
     line-height: 1.75;

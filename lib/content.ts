@@ -32,6 +32,39 @@ function sortChapters(chapters: Chapter[]): Chapter[] {
   });
 }
 
+/**
+ * Orders chapters by following the authored previous/next chain (starting
+ * from the chapter with no previous), not by part name + per-part
+ * chapterNumber. Per-part numbering resets to 1 in every part, so sorting
+ * by it produces a reading order that isn't actually sequential once
+ * there's more than one part. The previous/next chain is the single
+ * source of truth for what order the book is actually meant to be read
+ * in, and it already spans every chapter regardless of part.
+ *
+ * Falls back to the part/number sort for anything unreachable from the
+ * chain (a broken link, or no chapter with previous: null) rather than
+ * dropping chapters silently.
+ */
+function buildReadingOrder(chapters: Chapter[]): Chapter[] {
+  const bySlug = new Map(chapters.map((c) => [c.meta.slug, c]));
+  const head = chapters.find((c) => !c.meta.previous);
+
+  const ordered: Chapter[] = [];
+  const seen = new Set<string>();
+  let current = head;
+  while (current && !seen.has(current.meta.slug)) {
+    ordered.push(current);
+    seen.add(current.meta.slug);
+    current = current.meta.next ? bySlug.get(current.meta.next) : undefined;
+  }
+
+  for (const chapter of sortChapters(chapters)) {
+    if (!seen.has(chapter.meta.slug)) ordered.push(chapter);
+  }
+
+  return ordered;
+}
+
 export function getAllChapters(contentDir: string): Chapter[] {
   const files = walkMdxFiles(contentDir);
   const chapters = files.map((filePath) => {
@@ -47,7 +80,7 @@ export function getAllChapters(contentDir: string): Chapter[] {
 }
 
 export function getPublishedChapters(contentDir: string): Chapter[] {
-  return getAllChapters(contentDir).filter(
+  return buildReadingOrder(getAllChapters(contentDir)).filter(
     (chapter) => chapter.meta.status === "published"
   );
 }
@@ -62,19 +95,30 @@ export function getChapterBySlug(
   return chapter ?? null;
 }
 
-function toTocEntry(chapter: Chapter): TocEntry {
+function toTocEntry(chapter: Chapter, displayNumber: number): TocEntry {
   return {
     title: chapter.meta.title,
     slug: chapter.meta.slug,
     part: chapter.meta.part,
-    chapterNumber: chapter.meta.chapterNumber,
+    chapterNumber: displayNumber,
     summary: chapter.meta.summary,
     status: chapter.meta.status,
   };
 }
 
+/**
+ * Display chapter number for every published chapter, keyed by slug —
+ * position in the actual reading order (see buildReadingOrder), not the
+ * per-part frontmatter chapterNumber, which resets to 1 in every part.
+ */
+function displayNumbersBySlug(contentDir: string): Map<string, number> {
+  const published = getPublishedChapters(contentDir);
+  return new Map(published.map((c, index) => [c.meta.slug, index + 1]));
+}
+
 export function getTableOfContents(contentDir: string): TocPart[] {
   const published = getPublishedChapters(contentDir);
+  const numbers = displayNumbersBySlug(contentDir);
   const partsInOrder: string[] = [];
   const partTitleByKey = new Map<string, string>();
   for (const chapter of published) {
@@ -88,12 +132,22 @@ export function getTableOfContents(contentDir: string): TocPart[] {
     partTitle: partTitleByKey.get(part) as string,
     chapters: published
       .filter((c) => c.meta.part === part)
-      .map(toTocEntry),
+      .map((c) => toTocEntry(c, numbers.get(c.meta.slug)!)),
   }));
 }
 
 export function getFlatChapterList(contentDir: string): TocEntry[] {
-  return getPublishedChapters(contentDir).map(toTocEntry);
+  return getPublishedChapters(contentDir).map((c, index) =>
+    toTocEntry(c, index + 1)
+  );
+}
+
+/** Display chapter number for a single published chapter, or null if it isn't published. */
+export function getChapterDisplayNumber(
+  contentDir: string,
+  slug: string
+): number | null {
+  return displayNumbersBySlug(contentDir).get(slug) ?? null;
 }
 
 export function getAdjacentChapters(
@@ -104,6 +158,7 @@ export function getAdjacentChapters(
   if (!chapter) {
     return { previous: null, next: null };
   }
+  const numbers = displayNumbersBySlug(contentDir);
   const previousChapter = chapter.meta.previous
     ? getChapterBySlug(contentDir, chapter.meta.previous)
     : null;
@@ -113,11 +168,11 @@ export function getAdjacentChapters(
   return {
     previous:
       previousChapter && previousChapter.meta.status === "published"
-        ? toTocEntry(previousChapter)
+        ? toTocEntry(previousChapter, numbers.get(previousChapter.meta.slug)!)
         : null,
     next:
       nextChapter && nextChapter.meta.status === "published"
-        ? toTocEntry(nextChapter)
+        ? toTocEntry(nextChapter, numbers.get(nextChapter.meta.slug)!)
         : null,
   };
 }
