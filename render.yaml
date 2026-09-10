@@ -1,10 +1,18 @@
 services:
   - type: web
     name: agentic-journey
-    runtime: static
+    runtime: node
     branch: main
-    buildCommand: npm ci && npm test && npm run build
-    staticPublishPath: out
-    autoDeployTrigger: commit
-    previews:
-      generation: automatic
+    buildCommand: >-
+      git clone --depth 1
+      https://x-access-token:$CONTENT_REPO_TOKEN@github.com/jgranger/agentic-journey-content.git
+      docs/private &&
+      npm ci &&
+      npm run promote &&
+      npm run build
+    startCommand: node server.js
+    envVars:
+      - key: ACCESS_TOKEN
+        sync: false
+      - key: CONTENT_REPO_TOKEN
+        sync: false

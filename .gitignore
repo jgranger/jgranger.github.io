@@ -14,5 +14,12 @@ docs/private/
 content/book-preview/
 public/preview-images/
 
+# Real chapter content, generated ONLY at Render build time from the
+# private content repo (see scripts/promote-chapters.mjs and
+# render.yaml) and served from behind the token gate in server.js. Must
+# never be committed here — this repo is public.
+content/book/book/
+public/book-images/
+
 # Brainstorming visual-companion scratch files
 .superpowers/
