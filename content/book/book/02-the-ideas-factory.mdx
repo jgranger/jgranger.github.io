@@ -1,0 +1,74 @@
+---
+title: "The Ideas Factory"
+slug: "the-ideas-factory"
+part: book
+partTitle: ""
+chapterNumber: 2
+summary: "One working agent turned into a stream of requests for entirely new ones — and then into an acquisition."
+status: published
+previous: "one-problem-worth-solving"
+next: "context-engineering"
+---
+The funny thing about Slack is it's highly transparent. Little did I know that my boss was paying attention to what was going on in one of the channels we were using to test the messaging agent. The channel was an incubation area for developing new tools the agent could leverage. Sometimes you're experimenting to push the limits of what's possible, simply because you can - it's straight up R&D. 
+
+Once we had achieved our goals with the messaging agent our CTO continued to encourage pouring into the effort. Not only for the immediate benefit, but so we could establish patterns and practices around agentic development as well. From the trenches we were solving some interesting and challenging engineering problems. From the executive view a much more forward looking perspective was emerging.
+
+I've spent most of my career working with executives to bring their strategic vision to reality. Sometimes that vision is clear up front and even more often the full vision is something I only see once we iterate together for a while. There's always more to the story and that's what it makes this business so interesting. Sometimes opportunities arise exactly as planned, and other times it's like casting seed and seeing where it sprouts best. More often than not it's a combination of the two. With the messaging agent assisting us in production our CTO now wanted a DBT agent to help respond to occasional pipeline failures. We no sooner started developing the DBT agent when my boss hands me a spec and says, "This is next..."
+
+When our CTO asked us to start working on a new agent for our dogfooding sessions I thought that was clever, but I didn't see the full vision of where things were going because dogfooding is only one strategic area of interest for us. Dogfooding is a big deal at momoGood, as the entire company is encouraged to participate in evaluating new features together. People submit hundreds of feedback comments, screenshots, screen recordings and the like, and these all have to be captured, de-duplicated, evaluated and summarized. Tickets are created based on specific criteria and the agent saves incredible amounts of time that historically took product managers many hours.
+
+[dogfooding]
+
+The dogfooding agent is a workhorse. I kind of feel like the whole world should have it, as it might be the next best thing for preventing repetative stress injuries among product managers. But seriously, what we had created was more than just an automation with some intelligence. We created something very valuable to the organization that met real needs, and our needs were about to change in a big way.
+### The Acquisition
+
+The thing I love about startups is the dramatic change that can occur in a short period of time. One day you're comfortable working on some interestring engineering problems and all of a sudden the company more than doubles in size. There's a new product suite that we need to bring into the fold, there's new processes, new people, new challenges and new rules of the game. 
+
+It's like a scene from the movie Tron where Flynn gets sucked into the computer. One moment he's typing away searching for his programs and the next he's entered into a completely new reality. That's what it felt like when we acquired Givergy and it felt every bit as real. 
+
+<img src="/book-images/jon.png" width="1153" alt="" />
+
+In the startup world, especially when there's a liquity event your world changes dramatically. We're a week into building the dogfooding agent and my boss pings my on Slack and says, "Want to work on something really impactful?" Then he sends me a spec. 
+
+There are specs written by product managers and there are specs written by engineers. Then there are specs written by CTO's who own both product and engineering. When I get a spec from our CTO I know it's important, aligns with our strategic vision, is well thought out and well structured. One thing I can't stress enough if you want to innovate rapidly with AI is the value of a quality spec. This is especially true in a world where we can build systems and features with a high degree of parallelism. The implementation plan can be developed such that we can build most of the components concurrently but this is only possible if we have a quality spec to work from.
+### Ask Product
+
+That is a major reason Ask Product needed to exist.
+
+Product managers were spending an enormous amount of time answering questions about the product. Each question might take only a few minutes, but the questions never stopped. Every interruption pulled them away from the deeper work only they could do.
+
+They were expected to remain available and respond quickly while also finding enough uninterrupted time to think clearly about the product. Those are opposing goals. You cannot be constantly interruptible and deeply focused at the same time.
+
+Ask Product was not created to replace product managers. It was created to protect their attention. It gave people timely answers without turning every question into another interruption. The agent took on the repetition so the product managers could spend more time exercising judgment.
+
+This connects directly to one of the book’s larger ideas: AI creates value when it gives human attention back.
+
+If you could ask any question about a company's product down to the most minute detail what would it be? You almost have to stop and think about it because we're not used to considering we have that level of access. Now we do and we're able to offer that up to everyone in the organization.
+
+Enter the Ask Product agent. Here's the initial high level agent architecture.
+
+<img src="/book-images/ap.png" width="1169" alt="" />
+
+Initially we set the agent up to operate on our Tatango repositories and documentation sources. Tatango was a stack and codebase we knew well and had excellent documentation about. Focusing on a system we were intimately familar with allowed us build the core components and test them against a system we already knew the answers to. We took the spec and created an implementation plan with distinct phases. The initial phase was scaffolding and basic functionality. You could ask the agent a question and it would give you an answer. You could approve or edit it if it was wrong. I'll never forget when my boss asked one of our product managers, "Does it do what you want?" He answered, "No, but I see the potential." Good question, better answer.
+
+### Where the Real Work Begins
+
+Mergers and Acquisitions are a lot of fun. I like to call them mergers and migrations because where I tend to spend time is the latter part. Technically speaking it's applications, data, and operations on data. Organizationally speaking it's people, process and projects. Migrations are hard which is why I like them. Things are nebulous not only for the organization being acquired but the one acquiring them. Even when we used to write code from scratch it was never really the coding that took the most of the time. It was reviewing processes, developing new processes, integrating existing processes and discerning what needed to be done. It's often a lot of data mapping and it's a lot of decision making. There's policy considerations, regulatory issues, and numerous other complexities that all need to be addressed before any real programming work can be done. 
+
+Then there's the product side of things where the company being acquired has been around for some time with a large code base no one person fully understands. There's documentation about the product but it's disconnected from the code itself. It's not uncommon for documentation to say one thing and the product to behave differently. What is common is for the acquiring company wanting to pop the hood to see what's underneath, so they can get a grasp of the product and integrate it fully into the business.
+
+By fully I mean any person in the organization can ask a question and get a very specific answer about how the product works and what its capabilities are. Sales, Customer Success and Marketing teams gain superpowers by having intelligence about the product at their fingertips. Think every person in the organization having the power of Claude Code in a unified place, while also having access to other integrated tools, documentation and data sources to better serve our customers.
+
+Today the Ask Product agent looks like this.
+
+<img src="/book-images/ap-full.png" alt="" />
+
+The Ask Product agent gets smarter over time. It's fascinating to watch it grow and perform. One thing I didn't expect is the level of attention I'd cultivate while developing and training this agent. That may seem like a bit much, but there are times I'm proud of how it performs, other times where I see it learning, and others where I'm quite dissapointed. It's humbling at times but rewarding and this stuff is hard. I always try and put things into the proper context. We're pushing the envelope here doing things that have never been done before. 
+
+---
+
+
+
+
+
+

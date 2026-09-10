@@ -11,11 +11,13 @@ export function ChapterHeader({
   title: string;
   summary: string;
 }) {
+  const eyebrow = [partTitle, chapterNumber ? `Chapter ${chapterNumber}` : null]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <header className="mb-8 sm:mb-10">
-      <p className="text-eyebrow text-foreground-subtle">
-        {chapterNumber ? `${partTitle} · Chapter ${chapterNumber}` : partTitle}
-      </p>
+      {eyebrow && <p className="text-eyebrow text-foreground-subtle">{eyebrow}</p>}
       <h1 className="text-h1 mt-2">{title}</h1>
       <p className="text-lead text-foreground-secondary mt-4">{summary}</p>
     </header>

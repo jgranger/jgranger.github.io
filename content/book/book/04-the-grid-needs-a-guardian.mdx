@@ -1,0 +1,49 @@
+---
+title: "The Grid Needs a Guardian"
+slug: "the-grid-needs-a-guardian"
+part: book
+partTitle: ""
+chapterNumber: 4
+summary: "Meet BitBot — the evaluator that watches the Ask Product agent so it never grades its own homework."
+status: published
+previous: "context-engineering"
+next: "from-agent-to-platform"
+---
+In 1982 The IBM PC was only a year old. The Macintosh didn't exist yet. The World Wide Web was still seven years away from being proposed. Yet, that year the movie Tron was released. I'll never forget it because it's one of the first full length movies I remember watching with my family growing up. Tron presented a world in which programs existed as autonomous entities inside an interconnected digital world, communicated with one another, followed instructions, fought for survival and interacted with human “Users.”
+
+Three years earlier, Bonnie MacBird was working on the original screenplay when her research led her to Xerox PARC, one of the places where the future of personal computing was quietly being invented. There she met her future husband Alan Kay, a pioneer of object oriented programming and one of the people responsible for Smalltalk. Kay believed that computers should be built from objects communicating with one another through messages.
+
+During my first year studying Computer Science I kept coming across uncanny references that made me remember and think about the movie. I began to realize just how remarkable the script was. I had seen so many cheesy movies where software and programming are represented in the most obsurd way (think characters streaming down the screen). One thing that was clear to me was that Bonnie understood computing, at least enough to create such a remarkable script that stayed true to CS principles in thier purest form. I was so enamored I wrote to her an email to simply pass a message of gratitude letting her know how the story inspired me. To my chagrin she messaged back! 
+
+Message passing became remarkably literal inside the world of _Tron_. Programs weren't just lines of code. They had identities, purposes and relationships with the Users who created them. And at the center of the story was the Tron program. Tron was created to watch what was happening inside the Grid and stand against programs that threatened it. When the Master Control Program began taking control of the system, Tron became its guardian, enforcing guardrails, preventing unapproved actions - even shutting programs down if necessary. Tron existed because an increasingly complex system needed something inside it capable of protecting it. More than forty years later, as we began building a growing network of agents that can reason, communicate and act on behalf of people, we are beginning to create our own version of the Grid.
+### Meet BitBot
+
+There's a character in Tron named Bit, which can only ever answer in one of two ways - yes or no. No nuance, no hedging, just a binary flicker of light. When it came time to name the thing that watches over our Ask Product agent, that felt exactly right. We called it BitBot.
+
+BitBot doesn't answer product questions. It's not even the same identity as the agent it's watching. It shows up in Slack under its own name, and its entire job is to post one verdict after another - pass or fail, a green icon or a red one. Nothing else.
+
+Here's how it actually works. A separate test identity posts a scripted question into Slack, the same way a real person would. Our Ask Product agent answers it, same as always. Then a judge steps in, an LLM given the question, the agent's actual answer, and what a correct answer was supposed to look like, and it renders a verdict - pass or fail, along with a sentence or two on why. BitBot takes that verdict and posts it back to the channel with a pass icon or a fail icon, and updates a checkbox on our tracking ticket so we know at a glance what broke. We deliberately never let that judge call something inconclusive. Only our own code gets to decide a run was an environment fluke instead of a real failure. Otherwise it's too easy for a judge to talk itself out of a bad grade.
+
+We run this across hundreds of scripted scenarios, not a handful. Approved answers, corrections, escalations, guardrails, formatting, roadmap questions, code search quality across our diverse product stacks. Before anything ships, all of it runs together as one regression suite, and we hold ourselves to a minimum pass rate before we'll let a release out the door.
+### The Good, the Bad and the Ugly
+
+BitBot only covers what we already thought to test for. So right alongside it, every real answer that ships to a real user passes through a second, quieter layer before it goes out - plain deterministic code, not a model judging itself. It watches for the specific ways we've actually seen the agent get it wrong in production. A phone number question answered with a mailing address. An internal code name that slipped into a customer-facing sentence. A confident "yes, we support that" with nothing behind it. A flat "you can't do that" when the code says otherwise. When one of those trips, the agent gets a second try with the exact correction spelled out, and that second answer gets checked again before anyone trusts it. That's the "Correcting the answer" you'll sometimes see flash by in Slack. It's not a second AI double-checking the first. It's code, watching.
+
+Between the two, BitBot never does the agent's job, and it never lets the agent grade its own work either. One checks the homework before it ships. The other watches every real answer as it goes out the door. Judgment, running continuously, so the tool gets to keep executing.
+
+It turns out we weren't alone in arriving here. Anthropic's work on [evaluating AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) and Eugene Yan's work on [LLM evaluators](https://eugeneyan.com/writing/llm-evaluators/) both land on the same basic problem. The judge needs watching too. BitBot taught us that before I ever found the research.
+### Goodhart's Law in Action
+
+Our automated test suite told us the agent was doing fine — the pass rate was steady, even climbing — while real users were quietly getting confidently wrong answers. It took time to understand how both things could be true at once. A GitHub App token was being resolved without specifying which repository it belonged to, so every fetch against one of our source repositories quietly failed authentication, and our indexer read those failures as deletions. Our knowledge base was being erased a little more with every update to that codebase, and as it thinned out, the agent increasingly had nothing to work with — but on the narrow set of questions we already tested, that mostly meant honest escalations, which our scoring treated as passes. Meanwhile, on the much larger set of real questions we'd never thought to write a test for, that same eroding index wasn't producing empty answers — it was producing wrong, confident ones, and there was no check anywhere that could fail on a question it didn't know existed. When we went back and actually inspected the test scenarios that should have caught this, we found some of them had their own bugs — grading logic that couldn't tell a true answer from a fabricated one, failure conditions that silently merged into each other and stopped being checked independently. None of that was visible from the score. The only thing that actually broke the cycle was a person noticing that something felt wrong in production and refusing to let a passing test talk them out of it.
+### Misc
+
+“Keep one's compass in one's eyes and not in the hand, for the hands execute, but the eye judges.”
+Michelangelo
+
+The tool executes. The practitioner judges. This is the AI first way of building systems. If we use AI to produce an answer we use AI to evaluate it. After all, the major difference with AI in the middle is the results are non deterministic. A specific set of inputs doesn't guarantee a specific set of outputs. We're testing reasoning, and since some answers can be nuanced we need intelligence to interpret them.
+
+
+
+
+ 
+
