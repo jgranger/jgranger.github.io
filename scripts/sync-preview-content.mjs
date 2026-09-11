@@ -8,6 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
+import { CHAPTERS, BONUS_PAGES } from "./lib/chapters.mjs";
 
 const ROOT = process.cwd();
 const SOURCE_DIR = path.join(ROOT, "docs/private/chapters");
@@ -16,31 +17,6 @@ const BONUS_SOURCE_DIR = path.join(ROOT, "docs/private/bonus");
 const BONUS_OUTPUT_DIR = path.join(ROOT, "content/book-preview/bonus");
 const PRIVATE_DIR = path.join(ROOT, "docs/private");
 const IMAGES_OUT_DIR = path.join(ROOT, "public/preview-images");
-
-// Bonus (Konami-code) pages. Each maps one private draft file to the slug
-// its page component reads (see app/for-the-users/page.tsx and friends).
-// The page title stays fixed regardless of the draft's own heading — the
-// page's identity is "For the Users"; the draft's heading is just the
-// current bonus chapter's title within it.
-const BONUS_PAGES = [
-  { file: "the-multiplier.md", slug: "for-the-users", title: "For the Users" },
-];
-
-// Order matches docs/private/book-vision.md's current Chapter Structure
-// exactly. Update this list if that order ever changes.
-const CHAPTERS = [
-  { file: "01-one-problem-worth-solving.md", slug: "one-problem-worth-solving", title: "One Problem Worth Solving" },
-  { file: "02-the-ideas-factory.md", slug: "the-ideas-factory", title: "The Ideas Factory" },
-  { file: "03-context-engineering.md", slug: "context-engineering", title: "Context Engineering" },
-  { file: "04-the-grid-needs-a-guardian.md", slug: "the-grid-needs-a-guardian", title: "The Grid Needs a Guardian" },
-  { file: "05-from-agent-to-platform.md", slug: "from-agent-to-platform", title: "From Agent to Platform" },
-  { file: "06-life-in-the-fast-lane.md", slug: "fastlane", title: "Life in the Fast Lane" },
-  { file: "07-graph-engineering.md", slug: "graph-engineering", title: "Graph Engineering" },
-  { file: "08-intelligence-in-the-middle.md", slug: "intelligence-in-the-middle", title: "Intelligence in the Middle" },
-  { file: "09-the-flywheel.md", slug: "the-flywheel", title: "The Learning Flywheel" },
-  { file: "10-organizational-learning.md", slug: "the-organization-is-the-operating-system", title: "The Organization Is the Operating System" },
-  { file: "11-looking-forward.md", slug: "looking-forward", title: "Looking Forward" },
-];
 
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"]);
 
