@@ -38,7 +38,7 @@ const CHAPTERS = [
   { file: "07-graph-engineering.md", slug: "graph-engineering", title: "Graph Engineering" },
   { file: "08-intelligence-in-the-middle.md", slug: "intelligence-in-the-middle", title: "Intelligence in the Middle" },
   { file: "09-the-flywheel.md", slug: "the-flywheel", title: "The Learning Flywheel" },
-  { file: "10-organizational-learning.md", slug: "organizational-learning", title: "Organizational Learning" },
+  { file: "10-organizational-learning.md", slug: "the-organization-is-the-operating-system", title: "The Organization Is the Operating System" },
   { file: "11-looking-forward.md", slug: "looking-forward", title: "Looking Forward" },
 ];
 
