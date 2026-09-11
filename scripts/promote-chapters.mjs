@@ -176,3 +176,12 @@ console.log(
     `and ${imageMap.size} image(s) into ${path.relative(ROOT, IMAGES_OUT_DIR)}/` +
     (missing ? ` (${missing} chapter file(s) missing)` : "")
 );
+
+// Fail the Render build here, with a clear per-chapter error, rather than
+// shipping a chapter that only fails at request time in a reader's
+// browser with a cryptic MDX parser error.
+const failures = await verifyMdxDir(OUTPUT_DIR);
+if (reportMdxFailures(failures, ROOT)) {
+  process.exit(1);
+}
+console.log(`✓ All promoted chapters compile.`);
