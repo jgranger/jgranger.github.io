@@ -7,6 +7,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
 
 const ROOT = process.cwd();
 const SOURCE_DIR = path.join(ROOT, "docs/private/chapters");
@@ -221,3 +222,16 @@ console.log(
   `Synced ${bonusSynced} bonus page(s) into ${path.relative(ROOT, BONUS_OUTPUT_DIR)}/` +
     (bonusMissing ? ` (${bonusMissing} bonus file(s) missing)` : "")
 );
+
+// Fail loudly here, not silently at request time in a browser. A chapter
+// with invalid MDX/JSX syntax (e.g. an escaped quote in an attribute)
+// still "succeeds" at the file-copy step above — this is the only place
+// that actually proves each chapter renders.
+const failures = [
+  ...(await verifyMdxDir(OUTPUT_DIR)),
+  ...(await verifyMdxDir(BONUS_OUTPUT_DIR)),
+];
+if (reportMdxFailures(failures, ROOT)) {
+  process.exit(1);
+}
+console.log(`✓ All synced chapters compile.`);
