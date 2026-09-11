@@ -33,7 +33,7 @@ const CHAPTERS = [
   { file: "06-life-in-the-fast-lane.md", slug: "life-in-the-fast-lane", title: "Life in the Fast Lane" },
   { file: "07-graph-engineering.md", slug: "graph-engineering", title: "Graph Engineering" },
   { file: "08-intelligence-in-the-middle.md", slug: "intelligence-in-the-middle", title: "Intelligence in the Middle" },
-  { file: "09-the-flywheel.md", slug: "the-flywheel", title: "The Flywheel" },
+  { file: "09-the-flywheel.md", slug: "the-flywheel", title: "The Learning Flywheel" },
   { file: "10-organizational-learning.md", slug: "self-replication", title: "Self Replication" },
   { file: "11-looking-forward.md", slug: "looking-forward", title: "Looking Forward" },
 ];
