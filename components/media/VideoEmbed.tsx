@@ -3,14 +3,18 @@ export function VideoEmbed({
   title,
   poster,
   description,
+  size = "sm",
 }: {
   src: string;
   title: string;
   poster?: string;
   description?: string;
+  /** "lg" is 1.5x the default width (max-w-xl vs max-w-sm). */
+  size?: "sm" | "lg";
 }) {
+  const maxWidth = size === "lg" ? "max-w-xl" : "max-w-sm";
   return (
-    <figure className="my-8 mx-auto w-full max-w-sm">
+    <figure className={`my-8 mx-auto w-full ${maxWidth}`}>
       <video
         controls
         playsInline
