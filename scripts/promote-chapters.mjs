@@ -12,6 +12,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
 
 const ROOT = process.cwd();
 const SOURCE_DIR = path.join(ROOT, "docs/private/chapters");
