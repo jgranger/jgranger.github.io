@@ -10,6 +10,12 @@ import type {
 } from "@/types/content";
 
 function walkMdxFiles(dir: string): string[] {
+  // git doesn't track empty directories — with zero chapters published,
+  // content/book/ has no files in it and so doesn't exist at all in a
+  // fresh checkout (e.g. CI), even though it exists locally once you've
+  // ever had content in it. Treat "no directory" the same as "no files"
+  // rather than letting readdirSync throw ENOENT.
+  if (!fs.existsSync(dir)) return [];
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   const files: string[] = [];
   for (const entry of entries) {
