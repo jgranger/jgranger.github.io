@@ -13,30 +13,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
+import { CHAPTERS } from "./lib/chapters.mjs";
 
 const ROOT = process.cwd();
 const SOURCE_DIR = path.join(ROOT, "docs/private/chapters");
 const OUTPUT_DIR = path.join(ROOT, "content/book/book");
 const PRIVATE_DIR = path.join(ROOT, "docs/private");
 const IMAGES_OUT_DIR = path.join(ROOT, "public/book-images");
-
-// Order matches docs/private/book-vision.md's Chapter Structure. Update
-// this list if that structure changes. No summary field: left blank
-// rather than editorializing on Jon's behalf — he can add real
-// dek/summary text to a chapter's own frontmatter later if he wants one.
-const CHAPTERS = [
-  { file: "01-one-problem-worth-solving.md", slug: "one-problem-worth-solving", title: "One Problem Worth Solving" },
-  { file: "02-the-ideas-factory.md", slug: "the-ideas-factory", title: "The Ideas Factory" },
-  { file: "03-context-engineering.md", slug: "context-engineering", title: "Context Engineering" },
-  { file: "04-the-grid-needs-a-guardian.md", slug: "the-grid-needs-a-guardian", title: "The Grid Needs a Guardian" },
-  { file: "05-from-agent-to-platform.md", slug: "from-agent-to-platform", title: "From Agent to Platform" },
-  { file: "06-life-in-the-fast-lane.md", slug: "life-in-the-fast-lane", title: "Life in the Fast Lane" },
-  { file: "07-graph-engineering.md", slug: "graph-engineering", title: "Graph Engineering" },
-  { file: "08-intelligence-in-the-middle.md", slug: "intelligence-in-the-middle", title: "Intelligence in the Middle" },
-  { file: "09-the-flywheel.md", slug: "the-flywheel", title: "The Learning Flywheel" },
-  { file: "10-organizational-learning.md", slug: "the-organization-is-the-operating-system", title: "The Organization Is the Operating System" },
-  { file: "11-looking-forward.md", slug: "looking-forward", title: "Looking Forward" },
-];
 
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"]);
 
