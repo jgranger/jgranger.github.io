@@ -20,6 +20,7 @@ import { VideoEmbed } from "@/components/media/VideoEmbed";
 import { MermaidDiagram } from "@/components/diagrams/MermaidDiagram";
 import { AnimatedFlow } from "@/components/diagrams/AnimatedFlow";
 import { GalaxyComparison, GoogleGalaxy, AgenticGalaxy } from "@/components/diagrams/GalaxyComparison";
+import { GraphTraversal3D } from "@/components/diagrams/GraphTraversal3D";
 import { askProductFlow } from "@/content/diagrams/ask-product-flow";
 import { CONTENT_DIR } from "@/lib/contentDir";
 import type { TocEntry } from "@/types/content";
@@ -46,6 +47,7 @@ const MDX_COMPONENTS = {
   GalaxyComparison,
   GoogleGalaxy,
   AgenticGalaxy,
+  GraphTraversal3D,
 };
 
 /**
