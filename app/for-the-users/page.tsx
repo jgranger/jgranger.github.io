@@ -5,7 +5,6 @@ import { renderMdx } from "@/lib/mdx";
 import { getFlatChapterList } from "@/lib/content";
 import { ChapterSidebar } from "@/components/publication/ChapterSidebar";
 import { ForTheUsersReveal } from "@/components/bonus/ForTheUsersReveal";
-import { PlayGate } from "@/components/bonus/PlayGate";
 import { CONTENT_DIR, BONUS_DIR } from "@/lib/contentDir";
 
 // Not linked from navigation, the table of contents, or any sitemap.
@@ -31,7 +30,6 @@ export default async function ForTheUsersPage() {
             <h1 className="text-h1 mt-2">{data.title}</h1>
           </header>
           <article className="prose prose-invert mt-8">{body}</article>
-          <PlayGate />
         </main>
       </div>
     </ForTheUsersReveal>
