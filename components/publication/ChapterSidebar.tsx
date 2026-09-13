@@ -13,11 +13,9 @@ export function ChapterSidebar({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [bonusUnlocked, setBonusUnlocked] = useState(false);
-  const [gameUnlocked, setGameUnlocked] = useState(false);
 
   useEffect(() => {
     setBonusUnlocked(sessionStorage.getItem("konami-unlocked") === "true");
-    setGameUnlocked(sessionStorage.getItem("game-unlocked") === "true");
   }, []);
 
   return (
@@ -51,6 +49,18 @@ export function ChapterSidebar({
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/citations/"
+                className={
+                  currentSlug === "citations"
+                    ? "text-accent font-medium"
+                    : "text-foreground-secondary hover:text-accent"
+                }
+              >
+                12. Citation Graph
+              </Link>
+            </li>
             {bonusUnlocked && (
               <li>
                 <Link
@@ -62,20 +72,6 @@ export function ChapterSidebar({
                   }
                 >
                   13. For the Users
-                </Link>
-              </li>
-            )}
-            {gameUnlocked && (
-              <li>
-                <Link
-                  href="/full-access/"
-                  className={
-                    currentSlug === "full-access"
-                      ? "text-accent font-medium italic"
-                      : "text-foreground-subtle hover:text-accent italic"
-                  }
-                >
-                  14. Full Access
                 </Link>
               </li>
             )}
