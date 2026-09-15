@@ -17,6 +17,7 @@ import { TechnicalDetail } from "@/components/content/TechnicalDetail";
 import { WideSection } from "@/components/content/WideSection";
 import { FullBleedSection } from "@/components/content/FullBleedSection";
 import { VideoEmbed } from "@/components/media/VideoEmbed";
+import { ZoomableImage } from "@/components/media/ZoomableImage";
 import { MermaidDiagram } from "@/components/diagrams/MermaidDiagram";
 import { AnimatedFlow } from "@/components/diagrams/AnimatedFlow";
 import { GalaxyComparison, GoogleGalaxy, AgenticGalaxy } from "@/components/diagrams/GalaxyComparison";
@@ -35,6 +36,13 @@ const CITATION_CHAPTER: TocEntry = {
 };
 
 const MDX_COMPONENTS = {
+  // Every promoted chapter image becomes click-to-enlarge; nothing in
+  // the MDX source has to opt in.
+  img: ZoomableImage,
+  // What promote-chapters.mjs actually emits. MDX only routes
+  // markdown-derived nodes through this map, so a raw <img> would never
+  // reach ZoomableImage — the capitalised tag does.
+  ZoomableImage,
   Callout,
   Quote,
   CodeBlock,
