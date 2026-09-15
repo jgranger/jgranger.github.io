@@ -16,7 +16,7 @@ export function Callout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="my-6 rounded-lg border border-border bg-muted p-4">
+    <div className="prose-measure my-6 rounded-lg border border-border bg-muted p-4">
       <p className="text-eyebrow text-foreground-subtle mb-2">
         {LABELS[type]}
       </p>

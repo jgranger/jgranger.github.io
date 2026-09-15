@@ -75,23 +75,30 @@ export async function ChapterView({ slug }: { slug: string }) {
   const body = await renderMdx(chapter.content, MDX_COMPONENTS);
 
   return (
-    <div className="max-w-(--width-wide) mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:flex lg:gap-12 lg:py-16">
+    <div className="max-w-(--width-wide) mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:flex lg:justify-center lg:gap-16 lg:py-16">
       <ChapterSidebar chapters={chapters} currentSlug={slug} />
-      <main className="min-w-0 max-w-(--width-reading) w-full">
+      <main className="min-w-0 w-full flex-1 max-w-(--width-column)">
         <ChapterProgress />
         <RecordVisit
           title={chapter.meta.title}
           part={chapter.meta.part}
           slug={chapter.meta.slug}
         />
-        <ChapterHeader
-          partTitle={chapter.meta.partTitle}
-          chapterNumber={chapterNumber}
-          title={chapter.meta.title}
-          summary={chapter.meta.summary}
-        />
+        {/* Header and prev/next sit outside .prose, so they need the
+            text measure applied here — otherwise they'd run the full
+            column width and break the centre axis the body copy sits on. */}
+        <div className="max-w-(--width-measure) mx-auto">
+          <ChapterHeader
+            partTitle={chapter.meta.partTitle}
+            chapterNumber={chapterNumber}
+            title={chapter.meta.title}
+            summary={chapter.meta.summary}
+          />
+        </div>
         <article className="prose prose-invert mt-8">{body}</article>
-        <PrevNextNav adjacent={adjacent} />
+        <div className="max-w-(--width-measure) mx-auto">
+          <PrevNextNav adjacent={adjacent} />
+        </div>
       </main>
     </div>
   );
