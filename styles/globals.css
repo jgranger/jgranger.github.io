@@ -274,7 +274,7 @@
 .prose > hr,
 .prose > .prose-measure {
   max-width: var(--width-measure);
-  margin-inline: auto;
+  margin-inline: 0 auto;
 }
 
 .prose pre,
