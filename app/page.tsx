@@ -20,5 +20,5 @@ export default function HomePage() {
     );
   }
 
-  return <ChapterView part={firstChapter.part} slug={firstChapter.slug} />;
+  return <ChapterView slug={firstChapter.slug} />;
 }

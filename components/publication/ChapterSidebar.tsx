@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { TocEntry } from "@/types/content";
+import { chapterHref } from "@/lib/chapterHref";
 
 export function ChapterSidebar({
   chapters,
@@ -38,7 +39,7 @@ export function ChapterSidebar({
             {chapters.map((chapter) => (
               <li key={chapter.slug}>
                 <Link
-                  href={`/book/${chapter.part}/${chapter.slug}/`}
+                  href={chapterHref(chapter)}
                   className={`block min-h-11 rounded-md px-3 py-2.5 lg:min-h-0 lg:px-0 lg:py-1 ${
                     chapter.slug === currentSlug
                       ? "text-accent font-medium"

@@ -52,20 +52,14 @@ const MDX_COMPONENTS = {
 
 /**
  * Renders a chapter's full reading view — sidebar, header, body, prev/next
- * nav. Shared between the actual /book/[part]/[chapter] route and the home
+ * nav. Shared between the actual /book/[chapter] route and the home
  * page, which renders the first chapter directly rather than a separate
  * landing page.
  */
-export async function ChapterView({
-  part,
-  slug,
-}: {
-  part: string;
-  slug: string;
-}) {
+export async function ChapterView({ slug }: { slug: string }) {
   const chapter = getChapterBySlug(CONTENT_DIR, slug);
 
-  if (!chapter || chapter.meta.status !== "published" || chapter.meta.part !== part) {
+  if (!chapter || chapter.meta.status !== "published") {
     notFound();
   }
 

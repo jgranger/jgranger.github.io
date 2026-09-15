@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { AdjacentChapters } from "@/types/content";
+import { chapterHref } from "@/lib/chapterHref";
 
 export function PrevNextNav({ adjacent }: { adjacent: AdjacentChapters }) {
   return (
@@ -7,7 +8,7 @@ export function PrevNextNav({ adjacent }: { adjacent: AdjacentChapters }) {
       <div className="min-w-0 md:max-w-[48%]">
         {adjacent.previous && (
           <Link
-            href={`/book/${adjacent.previous.part}/${adjacent.previous.slug}/`}
+            href={chapterHref(adjacent.previous)}
             className="block min-h-12 rounded-lg border border-border px-4 py-3 text-p1 text-accent"
           >
             ← {adjacent.previous.title}
@@ -17,7 +18,7 @@ export function PrevNextNav({ adjacent }: { adjacent: AdjacentChapters }) {
       <div className="min-w-0 md:max-w-[48%] md:text-right">
         {adjacent.next && (
           <Link
-            href={`/book/${adjacent.next.part}/${adjacent.next.slug}/`}
+            href={chapterHref(adjacent.next)}
             className="block min-h-12 rounded-lg border border-border px-4 py-3 text-p1 text-accent"
           >
             {adjacent.next.title} →

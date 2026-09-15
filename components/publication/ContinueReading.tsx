@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { chapterHref } from "@/lib/chapterHref";
 
 const STORAGE_KEY = "agentic-journey:last-visited-chapter";
 
@@ -36,7 +37,7 @@ export function ContinueReading() {
 
   return (
     <Link
-      href={`/book/${chapter.part}/${chapter.slug}/`}
+      href={chapterHref(chapter)}
       className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-accent px-6 py-3 text-center text-p1 text-accent sm:w-auto"
     >
       Continue reading: {chapter.title}
