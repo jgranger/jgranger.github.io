@@ -87,7 +87,7 @@ export async function ChapterView({ slug }: { slug: string }) {
         {/* Header and prev/next sit outside .prose, so they need the
             text measure applied here — otherwise they'd run the full
             column width and break the centre axis the body copy sits on. */}
-        <div className="max-w-(--width-measure) mx-auto">
+        <div className="max-w-(--width-measure)">
           <ChapterHeader
             partTitle={chapter.meta.partTitle}
             chapterNumber={chapterNumber}
@@ -96,7 +96,7 @@ export async function ChapterView({ slug }: { slug: string }) {
           />
         </div>
         <article className="prose prose-invert mt-8">{body}</article>
-        <div className="max-w-(--width-measure) mx-auto">
+        <div className="max-w-(--width-measure)">
           <PrevNextNav adjacent={adjacent} />
         </div>
       </main>
