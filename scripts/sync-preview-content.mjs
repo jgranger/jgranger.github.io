@@ -64,7 +64,8 @@ function copyImages(imageMap) {
 //   Obsidian embed:      ![[filename.png]]  or  ![[filename.png|1190]]
 //   Markdown w/ width hack: ![alt|1190](filename.png)
 //   Plain markdown:       ![alt](filename.png)
-// into a plain <img> tag pointing at the copied, gitignored preview copy.
+// into a <ZoomableImage> tag pointing at the copied, gitignored preview
+// copy. Raw <img> would bypass the MDX component map and lose zoom.
 function rewriteImages(content, imageMap) {
   const resolve = (originalName) => {
     const hit = imageMap.get(originalName.trim());
@@ -77,8 +78,8 @@ function rewriteImages(content, imageMap) {
       const src = resolve(filename);
       if (!src) return match;
       return width
-        ? `<img src="${src}" width="${width}" alt="" />`
-        : `<img src="${src}" alt="" />`;
+        ? `<ZoomableImage src="${src}" alt="" />`
+        : `<ZoomableImage src="${src}" alt="" />`;
     }
   );
 
@@ -91,8 +92,8 @@ function rewriteImages(content, imageMap) {
       const widthMatch = altText.match(/\|(\d+)$/);
       const width = widthMatch ? widthMatch[1] : null;
       return width
-        ? `<img src="${src}" width="${width}" alt="" />`
-        : `<img src="${src}" alt="${altText}" />`;
+        ? `<ZoomableImage src="${src}" alt="" />`
+        : `<ZoomableImage src="${src}" alt="${altText}" />`;
     }
   );
 
