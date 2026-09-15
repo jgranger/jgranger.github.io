@@ -54,12 +54,13 @@
 
   --width-reading: min(100%, 48rem);
   --width-wide: min(100%, 84rem);
-  /* The chapter body column, and the narrower measure text sits at
-     inside it. Media (images, diagrams, code, tables) uses the full
-     column; prose uses --width-measure, so both stay centred on one
-     axis. ~42rem at 20px is about 66 characters per line. */
+  /* The chapter body column. Text and media both use the full width —
+     Jon wants the horizontal space used, and a text ribbon narrower
+     than the figures beside it read as broken to him rather than as a
+     readable measure. --width-measure stays a separate token so the
+     text can be narrowed again later without touching the layout. */
   --width-column: min(100%, 68rem);
-  --width-measure: min(100%, 42rem);
+  --width-measure: min(100%, 68rem);
 }
 
 /*
