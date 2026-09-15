@@ -20,6 +20,24 @@ This repo is public (`jgranger/jgranger.github.io`, required for free-tier GitHu
 - Deployed to GitHub Pages at the root of `jgranger.github.io` (this repo was renamed from `agentic-journey` specifically for that).
 - Draft chapters (`status: draft`) get no page in the production build.
 
+## Content sync and deployment (set up 2026-09-15)
+
+`docs/private` is a clone of the private `jgranger/agentic-journey-content`
+repo, edited both here and remotely through ChatGPT. `scripts/sync-content.sh`
+reconciles them every 2 minutes via the `agentic-journey-sync` systemd user
+timer: commit local changes, fetch, rebase onto `origin/main`, push, then POST
+the Render deploy hook.
+
+- The real book is readable only at the token-gated Render service
+  (`server.js` + `render.yaml`), which clones the content repo at build time.
+  GitHub Pages stays a public placeholder-only site.
+- **Render does not rebuild on content-repo pushes** — only on pushes to this
+  repo, or via the deploy hook. The hook URL is a secret at
+  `~/.config/agentic-journey/render-hook`, outside both repos.
+- The sync script never resolves a conflict. It commits local work first, then
+  aborts the rebase and notifies. Don't "fix" that by adding a merge strategy;
+  a daemon guessing at prose conflicts is how writing gets destroyed.
+
 ## Current status (2026-08-04)
 
 The v1 website (all 22 tasks from the implementation plan) is built, reviewed, merged to `main`, and deployed — live at https://jgranger.github.io/. Home, Table of Contents, About, and 4 chapters are published; the rest exist as drafts (excluded from the build). All chapter content on the live site is still placeholder text written from titles alone — it does NOT yet reflect `docs/private/book-vision.md`'s thesis, voice, or structure. `docs/private/book-vision.md` also now carries the actual chapter taxonomy (a real 4-part structure plus a few new chapters), superseding the older flat list mentioned in its own text.
