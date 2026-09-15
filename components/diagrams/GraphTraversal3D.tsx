@@ -277,14 +277,27 @@ export function GraphTraversal3D() {
 
       const projected = graph.nodes.map(project);
       const projectedById = new Map(projected.map((node) => [node.id, node]));
-      const elapsed = reducedMotion ? 0 : now - startedAt;
+      // requestAnimationFrame reports the timestamp of the frame's start,
+      // which can predate the performance.now() captured when this effect
+      // ran. That made `elapsed` briefly negative on the first frame, and
+      // since JS remainder keeps the sign, Math.floor(-0.001) % length was
+      // -1 — indexing sequence[-1], giving undefined, and throwing on
+      // `.cluster`. Clamp to zero so the first frame starts at step 0.
+      const elapsed = reducedMotion ? 0 : Math.max(0, now - startedAt);
       const stepValue = elapsed / STEP_MS;
       const stepIndex = Math.floor(stepValue) % graph.sequence.length;
       const progress = reducedMotion ? 0.35 : stepValue - Math.floor(stepValue);
       const currentId = graph.sequence[stepIndex];
       const nextId = graph.sequence[(stepIndex + 1) % graph.sequence.length];
-      const currentNode = nodeById.get(currentId)!;
-      const nextNode = nodeById.get(nextId)!;
+      const currentNode = nodeById.get(currentId);
+      const nextNode = nodeById.get(nextId);
+      // Defensive: a missing node must skip a frame, never throw inside
+      // the animation loop, where it would repeat every frame and take
+      // the page's interactivity down with it.
+      if (!currentNode || !nextNode) {
+        frame = requestAnimationFrame(render);
+        return;
+      }
       const crossingClusters = currentNode.cluster !== nextNode.cluster;
       const activeCluster = crossingClusters && progress > 0.58
         ? nextNode.cluster
