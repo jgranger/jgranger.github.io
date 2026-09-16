@@ -36,6 +36,18 @@ export function ChapterSidebar({
       >
         <nav aria-label="All chapters">
           <ul className="space-y-2 text-p2">
+            <li>
+              <Link
+                href="/dedication/"
+                className={`block min-h-11 rounded-md px-3 py-2.5 lg:min-h-0 lg:px-0 lg:py-1 ${
+                  currentSlug === "dedication"
+                    ? "text-accent font-medium"
+                    : "text-foreground-secondary hover:text-accent"
+                }`}
+              >
+                Dedication
+              </Link>
+            </li>
             {chapters.map((chapter) => (
               <li key={chapter.slug}>
                 <Link
