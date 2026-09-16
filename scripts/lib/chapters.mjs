@@ -20,11 +20,12 @@ export const CHAPTERS = [
   { file: "04-the-grid-needs-a-guardian.md", slug: "the-grid-needs-a-guardian", title: "The Grid Needs a Guardian" },
   { file: "05-from-agent-to-platform.md", slug: "from-agent-to-platform", title: "From Agent to Platform" },
   { file: "06-life-in-the-fast-lane.md", slug: "life-in-the-fast-lane", title: "Life in the Fast Lane" },
-  { file: "07-graph-engineering.md", slug: "graph-engineering", title: "Graph Engineering" },
-  { file: "08-intelligence-in-the-middle.md", slug: "intelligence-in-the-middle", title: "Intelligence in the Middle" },
-  { file: "09-the-flywheel.md", slug: "the-flywheel", title: "The Learning Flywheel" },
-  { file: "10-organizational-learning.md", slug: "the-organization-is-the-operating-system", title: "The Organization Is the Operating System" },
-  { file: "11-looking-forward.md", slug: "looking-forward", title: "Looking Forward" },
+  { file: "07-the-space-between.md", slug: "the-space-between", title: "The Space Between" },
+  { file: "08-the-ever-expansive-universe.md", slug: "the-ever-expansive-universe", title: "The Ever Expansive Universe" },
+  { file: "09-intelligence-in-the-middle.md", slug: "intelligence-in-the-middle", title: "Intelligence in the Middle" },
+  { file: "10-the-flywheel.md", slug: "the-flywheel", title: "The Learning Flywheel" },
+  { file: "11-organizational-learning.md", slug: "the-organization-is-the-operating-system", title: "The Organization Is the Operating System" },
+  { file: "12-what-deserves-attention.md", slug: "what-deserves-attention", title: "What Deserves Attention" },
 ];
 
 // Bonus (Konami-code) pages. Each maps one private draft file to the slug
