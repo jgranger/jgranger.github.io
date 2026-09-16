@@ -4,15 +4,6 @@
 // ever serves the public placeholder scaffold — this server is the one
 // place real content is shown, and only to requests that prove they have
 // the token.
-//
-// Flow: a request with ?token=<ACCESS_TOKEN> in the URL gets an
-// HttpOnly/Secure cookie set and is redirected to the clean URL (so the
-// token doesn't linger in the address bar, browser history, or Referer
-// headers of any link clicked from the page). A request with a valid
-// cookie is served normally. Anything else gets 401.
-//
-// No dependencies — Node's built-in http/fs/crypto only, to match this
-// project's minimal-dependency convention.
 
 import http from "node:http";
 import fs from "node:fs";
@@ -25,7 +16,7 @@ const OUT_DIR = path.join(__dirname, "out");
 const PORT = process.env.PORT || 3000;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const COOKIE_NAME = "agentic_journey_access";
-const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 180; // ~180 days
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
 
 if (!ACCESS_TOKEN) {
   console.error("ACCESS_TOKEN environment variable is required. Refusing to start.");
@@ -51,13 +42,10 @@ const CONTENT_TYPES = {
   ".xml": "application/xml; charset=utf-8",
 };
 
-/** Constant-time string comparison, so token checking can't leak timing info. */
 function timingSafeEqual(a, b) {
   const bufA = Buffer.from(a);
   const bufB = Buffer.from(b);
   if (bufA.length !== bufB.length) {
-    // Still run a comparison of equal-length buffers so the failure path
-    // takes comparable time regardless of length mismatch.
     crypto.timingSafeEqual(bufA, bufA);
     return false;
   }
@@ -79,14 +67,11 @@ function parseCookies(header) {
 
 function hasValidAccess(req, url) {
   const cookies = parseCookies(req.headers.cookie);
-  if (cookies[COOKIE_NAME] && timingSafeEqual(cookies[COOKIE_NAME], ACCESS_TOKEN)) {
-    return true;
-  }
+  if (cookies[COOKIE_NAME] && timingSafeEqual(cookies[COOKIE_NAME], ACCESS_TOKEN)) return true;
   const token = url.searchParams.get("token");
   return Boolean(token && timingSafeEqual(token, ACCESS_TOKEN));
 }
 
-/** Resolves a request pathname to a file under OUT_DIR, or null if none exists. Never escapes OUT_DIR. */
 function resolveStaticFile(pathname) {
   const decoded = decodeURIComponent(pathname);
   const normalized = path.normalize(decoded).replace(/^(\.\.[/\\])+/, "");
@@ -96,29 +81,76 @@ function resolveStaticFile(pathname) {
 
   for (const candidate of candidates) {
     const fullPath = path.join(OUT_DIR, candidate);
-    if (!fullPath.startsWith(OUT_DIR)) continue; // defense in depth against traversal
-    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
-      return fullPath;
-    }
+    if (!fullPath.startsWith(OUT_DIR)) continue;
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) return fullPath;
   }
   return null;
 }
 
 function send401(res) {
   res.writeHead(401, { "Content-Type": "text/html; charset=utf-8" });
-  res.end(
-    "<!doctype html><title>Access required</title><body style=\"font-family:sans-serif;background:#0a0a0f;color:#eee;display:flex;align-items:center;justify-content:center;height:100vh;margin:0\"><p>This link needs a valid access token.</p></body>"
-  );
+  res.end("<!doctype html><title>Access required</title><body style=\"font-family:sans-serif;background:#0a0a0f;color:#eee;display:flex;align-items:center;justify-content:center;height:100vh;margin:0\"><p>This link needs a valid access token.</p></body>");
 }
 
 function send404(res) {
   const notFoundPath = path.join(OUT_DIR, "404.html");
   res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
-  if (fs.existsSync(notFoundPath)) {
-    fs.createReadStream(notFoundPath).pipe(res);
-  } else {
-    res.end("Not found");
+  if (fs.existsSync(notFoundPath)) fs.createReadStream(notFoundPath).pipe(res);
+  else res.end("Not found");
+}
+
+function serveFile(req, res, filePath) {
+  const stat = fs.statSync(filePath);
+  const ext = path.extname(filePath).toLowerCase();
+  const contentType = CONTENT_TYPES[ext] || "application/octet-stream";
+  const range = req.headers.range;
+
+  // Browsers commonly require byte-range support for seeking and, on
+  // mobile Safari in particular, reliable MP4 playback. The old server
+  // always returned 200 with the entire file, even when the video element
+  // requested a range.
+  if (range) {
+    const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+    if (!match) {
+      res.writeHead(416, { "Content-Range": `bytes */${stat.size}` });
+      res.end();
+      return;
+    }
+
+    let start;
+    let end;
+    if (match[1] === "" && match[2] !== "") {
+      const suffixLength = Number(match[2]);
+      start = Math.max(0, stat.size - suffixLength);
+      end = stat.size - 1;
+    } else {
+      start = match[1] === "" ? 0 : Number(match[1]);
+      end = match[2] === "" ? stat.size - 1 : Number(match[2]);
+    }
+
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end < start || start >= stat.size) {
+      res.writeHead(416, { "Content-Range": `bytes */${stat.size}` });
+      res.end();
+      return;
+    }
+
+    end = Math.min(end, stat.size - 1);
+    res.writeHead(206, {
+      "Content-Type": contentType,
+      "Content-Length": end - start + 1,
+      "Content-Range": `bytes ${start}-${end}/${stat.size}`,
+      "Accept-Ranges": "bytes",
+    });
+    fs.createReadStream(filePath, { start, end }).pipe(res);
+    return;
   }
+
+  res.writeHead(200, {
+    "Content-Type": contentType,
+    "Content-Length": stat.size,
+    "Accept-Ranges": "bytes",
+  });
+  fs.createReadStream(filePath).pipe(res);
 }
 
 const server = http.createServer((req, res) => {
@@ -129,9 +161,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // A request that just proved access via the query token gets the cookie
-  // set and is bounced to the clean URL, so the token stops appearing in
-  // the address bar, browser history, or outgoing Referer headers.
   const queryToken = url.searchParams.get("token");
   if (queryToken && timingSafeEqual(queryToken, ACCESS_TOKEN)) {
     url.searchParams.delete("token");
@@ -149,9 +178,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const ext = path.extname(filePath).toLowerCase();
-  res.writeHead(200, { "Content-Type": CONTENT_TYPES[ext] || "application/octet-stream" });
-  fs.createReadStream(filePath).pipe(res);
+  serveFile(req, res, filePath);
 });
 
 server.listen(PORT, () => {
