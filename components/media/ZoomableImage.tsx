@@ -173,7 +173,7 @@ export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) 
               alt={alt ?? ""}
               draggable={false}
               onClick={(event) => event.stopPropagation()}
-              className="max-h-full max-w-full object-contain will-change-transform"
+              className="h-full w-full max-h-none max-w-none border-0 bg-transparent p-0 object-contain shadow-none will-change-transform"
               style={{
                 transform: `translate(${offset.x / scale}px, ${offset.y / scale}px) scale(${scale})`,
                 transformOrigin: "center center",
