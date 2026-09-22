@@ -21,9 +21,16 @@
 
 set -uo pipefail
 
+# --pull-only: fast-forward from the remote and nothing else. Used for the
+# website repo, where auto-committing would be wrong — a writing checkpoint is
+# always safe to commit, half-finished code is not. That mode never commits,
+# never pushes and skips entirely if the tree is dirty.
+PULL_ONLY=false
+[ "${1:-}" = "--pull-only" ] && PULL_ONLY=true
+
 REPO="${AGENTIC_CONTENT_REPO:-/home/jon/Documents/projects/personal/agentic-journey/docs/private}"
 HOOK_FILE="${AGENTIC_RENDER_HOOK:-$HOME/.config/agentic-journey/render-hook}"
-LOCK="/tmp/agentic-journey-sync.lock"
+LOCK="/tmp/agentic-journey-sync-$(echo "${AGENTIC_CONTENT_REPO:-content}" | md5sum | cut -c1-8).lock"
 QUIET_SECONDS=30
 BRANCH=main
 
@@ -54,7 +61,12 @@ if [ -n "$(find . -path ./.git -prune -o -type f -newermt "-${QUIET_SECONDS} sec
 fi
 
 committed=false
-if [ -n "$(git status --porcelain)" ]; then
+if [ "$PULL_ONLY" = true ]; then
+  if [ -n "$(git status --porcelain)" ]; then
+    log "local changes present, not touching them (pull-only mode)"
+    exit 0
+  fi
+elif [ -n "$(git status --porcelain)" ]; then
   git add -A
   if git commit -q -m "Writing checkpoint $(date '+%Y-%m-%d %H:%M')"; then
     committed=true
@@ -79,7 +91,15 @@ fi
 # Rebase rather than merge, so local writing lands on top of remote work and
 # the history stays readable. --autostash is deliberately NOT used: we already
 # committed everything above, so a dirty tree here means something unexpected.
-if [ "$base" != "$remote_head" ]; then
+if [ "$PULL_ONLY" = true ] && [ "$base" != "$remote_head" ]; then
+  # Fast-forward only. Never rewrite local commits in a repo the daemon
+  # doesn't own; if the branches have genuinely diverged, that's a human's
+  # call, so say so and leave everything alone.
+  if ! git merge --ff-only -q "origin/$BRANCH" 2>/dev/null; then
+    log "local and origin/$BRANCH have diverged, leaving it to you"
+    exit 0
+  fi
+elif [ "$base" != "$remote_head" ]; then
   if ! git rebase -q "origin/$BRANCH" 2>/dev/null; then
     git rebase --abort 2>/dev/null
     notify "Local and remote book edits conflict. Nothing was changed or lost. Resolve by hand in docs/private."
@@ -95,6 +115,17 @@ pulled=false
 
 # The whole point. A cycle that pulls but never pushes is the bug this
 # script exists to prevent.
+if [ "$PULL_ONLY" = true ]; then
+  if [ "$pulled" = true ]; then
+    log "fast-forwarded to origin/$BRANCH"
+  fi
+  # Local commits in pull-only mode are a human's business, not a daemon's.
+  if [ -n "$(git log "origin/$BRANCH..HEAD" --oneline)" ]; then
+    log "local commits not pushed (pull-only mode) — push them yourself"
+  fi
+  exit 0
+fi
+
 if [ -n "$(git log "origin/$BRANCH..HEAD" --oneline)" ]; then
   if ! git push -q origin "$BRANCH"; then
     notify "Could not push book changes to GitHub. Your commits are safe locally."
