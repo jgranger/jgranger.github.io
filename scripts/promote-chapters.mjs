@@ -160,6 +160,16 @@ console.log(
     (missing ? ` (${missing} chapter file(s) missing)` : "")
 );
 
+// A missing file means a chapter was renamed in the content repo without
+// updating scripts/lib/chapters.mjs. Skipping it would ship a book with a
+// hole in it and prev/next links pointing at a page that doesn't exist.
+if (missing) {
+  console.error(
+    `✗ ${missing} chapter file(s) listed in scripts/lib/chapters.mjs not found in ${path.relative(ROOT, SOURCE_DIR)}/`
+  );
+  process.exit(1);
+}
+
 // Fail the Render build here, with a clear per-chapter error, rather than
 // shipping a chapter that only fails at request time in a reader's
 // browser with a cryptic MDX parser error.
