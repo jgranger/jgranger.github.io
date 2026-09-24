@@ -9,7 +9,11 @@ const SCALE_STEP = 0.5;
 type Point = { x: number; y: number };
 
 export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
-  const { src, alt, width, height, className, ...rest } = props;
+  const { src, alt, width, height, className, style, ...rest } = props;
+  // Obsidian's ![[file.png|420]] resize arrives as `width`. `.prose img`
+  // forces width: auto, so a plain width attribute is ignored — apply it
+  // as a cap instead, never wider than the column.
+  const inlineStyle = width ? { ...style, maxWidth: `min(100%, ${width}px)` } : style;
   const [open, setOpen] = useState(false);
   const [scale, setScale] = useState(MIN_SCALE);
   const [offset, setOffset] = useState<Point>({ x: 0, y: 0 });
@@ -131,7 +135,7 @@ export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) 
         className="block w-full cursor-zoom-in border-0 bg-transparent p-0"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt ?? ""} width={width} height={height} className={className} {...rest} />
+        <img src={src} alt={alt ?? ""} height={height} className={className} style={inlineStyle} {...rest} />
       </button>
 
       {open && (
