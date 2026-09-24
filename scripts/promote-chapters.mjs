@@ -72,7 +72,7 @@ function rewriteImages(content, imageMap) {
       const src = resolve(filename);
       if (!src) return match;
       return width
-        ? `<ZoomableImage src="${src}" alt="" />`
+        ? `<ZoomableImage src="${src}" width="${width}" alt="" />`
         : `<ZoomableImage src="${src}" alt="" />`;
     }
   );
@@ -86,7 +86,7 @@ function rewriteImages(content, imageMap) {
       const widthMatch = altText.match(/\|(\d+)$/);
       const width = widthMatch ? widthMatch[1] : null;
       return width
-        ? `<ZoomableImage src="${src}" alt="" />`
+        ? `<ZoomableImage src="${src}" width="${width}" alt="" />`
         : `<ZoomableImage src="${src}" alt="${altText}" />`;
     }
   );
