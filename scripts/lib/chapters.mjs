@@ -21,7 +21,7 @@ export const CHAPTERS = [
   { file: "05-from-agent-to-platform.md", slug: "from-agent-to-platform", title: "From Agent to Platform" },
   { file: "06-life-in-the-fast-lane.md", slug: "life-in-the-fast-lane", title: "Life in the Fast Lane" },
   { file: "07-graph-engineering.md", slug: "graph-engineering", title: "Graph Engineering" },
-  { file: "08-the-ever-expansive-universe.md", slug: "the-ever-expansive-universe", title: "From Connection to Action" },
+  { file: "08-from-connection-to-action.md", slug: "from-connection-to-action", title: "From Connection to Action" },
   { file: "09-intelligence-in-the-middle.md", slug: "intelligence-in-the-middle", title: "Intelligence in the Middle" },
   { file: "10-the-flywheel.md", slug: "the-flywheel", title: "The Learning Flywheel" },
   { file: "11-organizational-learning.md", slug: "the-organization-is-the-operating-system", title: "The Organization Is the Operating System" },
