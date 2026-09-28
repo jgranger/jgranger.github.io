@@ -205,6 +205,118 @@
   }
 }
 
+.book-masthead {
+  max-width: 84rem;
+  margin-inline: auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.book-masthead__navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4rem;
+  margin-inline: clamp(1rem, 3.5vw, 3rem);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-heading);
+}
+
+.book-masthead__navigation nav {
+  display: flex;
+  gap: clamp(1rem, 3vw, 2.5rem);
+}
+
+.book-masthead__navigation a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.book-masthead__author {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+}
+
+.book-masthead a:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 6px;
+}
+
+.book-masthead__hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: clamp(26rem, 36vw, 31rem);
+  display: flex;
+  align-items: center;
+}
+
+.book-masthead__art {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url("/living-graph-header.webp") center / 100% auto no-repeat;
+  pointer-events: none;
+}
+
+.book-masthead__copy {
+  padding: 2.5rem clamp(1rem, 3.5vw, 3rem) 4rem;
+}
+
+.book-masthead__eyebrow {
+  margin-bottom: 1rem;
+  color: var(--foreground-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.book-masthead__title {
+  display: block;
+  width: fit-content;
+  font-family: var(--font-heading);
+  font-size: clamp(4rem, 7.2vw, 6.5rem);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.book-masthead__title span {
+  display: block;
+}
+
+.book-masthead__tagline {
+  margin-top: 1.5rem;
+  font-size: clamp(1rem, 1.65vw, 1.4rem);
+  color: var(--foreground-secondary);
+}
+
+@media (max-width: 639px) {
+  .book-masthead__hero {
+    min-height: 32rem;
+    align-items: flex-start;
+  }
+
+  .book-masthead__copy {
+    padding-top: 2rem;
+    padding-bottom: 16rem;
+  }
+
+  .book-masthead__art {
+    top: auto;
+    height: 17rem;
+    background-size: auto 100%;
+    background-position: right bottom;
+  }
+
+  .book-masthead__title {
+    font-size: clamp(3.5rem, 14vw, 5rem);
+  }
+
+  .book-masthead__navigation {
+    font-size: 0.875rem;
+  }
+}
+
 @layer base {
   html { overflow-x: clip; font-family: var(--font-sans); -webkit-text-size-adjust: 100%; }
   body { min-width: 20rem; overflow-x: clip; background: var(--color-background); color: var(--color-foreground); }

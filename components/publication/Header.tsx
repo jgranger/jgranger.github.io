@@ -2,13 +2,25 @@ import Link from "next/link";
 
 export function Header() {
   return (
-    <header className="header-grid mx-auto flex max-w-(--width-wide) items-center justify-between border-b border-border px-4 py-3 sm:px-6 sm:py-4">
-      <Link href="/" className="flex min-h-11 items-center text-h6 font-heading">
-        Agentic Journey
-      </Link>
-      <nav className="flex gap-3 text-p2 sm:gap-6">
-        <Link href="/about/" className="flex min-h-11 items-center px-2">About</Link>
-      </nav>
+    <header className="book-masthead">
+      <div className="book-masthead__navigation">
+        <Link href="/" className="book-masthead__author">Jonathan Granger</Link>
+        <nav aria-label="Main navigation">
+          <Link href="/">The book</Link>
+          <Link href="/about/">About</Link>
+        </nav>
+      </div>
+      <div className="book-masthead__hero">
+        <div className="book-masthead__art" aria-hidden="true" />
+        <div className="book-masthead__copy">
+          <p className="book-masthead__eyebrow">Jonathan Granger</p>
+          <Link href="/" className="book-masthead__title" aria-label="Agentic Journey home">
+            <span>Agentic</span>
+            <span>Journey</span>
+          </Link>
+          <p className="book-masthead__tagline">Attention becomes action.</p>
+        </div>
+      </div>
     </header>
   );
 }
