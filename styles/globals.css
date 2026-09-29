@@ -42,25 +42,20 @@
   --text-h6--line-height: clamp(1.5rem, 1.41rem + 0.38vw, 1.75rem);
   --text-lead: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
   --text-lead--line-height: clamp(1.9rem, 1.7rem + 0.85vw, 2.35rem);
-  --text-p1: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
-  --text-p1--line-height: clamp(1.8rem, 1.65rem + 0.5vw, 2rem);
-  --text-p2: clamp(0.875rem, 0.83rem + 0.2vw, 1.0625rem);
+  --text-p1: clamp(1.1875rem, 1.08rem + 0.45vw, 1.3125rem);
+  --text-p1--line-height: 1.72;
+  --text-p2: clamp(1rem, 0.98rem + 0.15vw, 1.0625rem);
   --text-p2--line-height: 1.5;
-  --text-small: clamp(0.625rem, 0.58rem + 0.19vw, 0.75rem);
-  --text-small--line-height: clamp(0.875rem, 0.83rem + 0.19vw, 1rem);
-  --text-eyebrow: clamp(0.625rem, 0.58rem + 0.19vw, 0.75rem);
-  --text-eyebrow--line-height: clamp(0.75rem, 0.71rem + 0.19vw, 0.875rem);
+  --text-small: clamp(0.875rem, 0.85rem + 0.15vw, 1rem);
+  --text-small--line-height: 1.5;
+  --text-eyebrow: clamp(0.75rem, 0.73rem + 0.08vw, 0.8125rem);
+  --text-eyebrow--line-height: 1.4;
   --text-eyebrow--letter-spacing: 0.0625rem;
 
   --width-reading: min(100%, 48rem);
   --width-wide: min(100%, 84rem);
-  /* The chapter body column. Text and media both use the full width —
-     Jon wants the horizontal space used, and a text ribbon narrower
-     than the figures beside it read as broken to him rather than as a
-     readable measure. --width-measure stays a separate token so the
-     text can be narrowed again later without touching the layout. */
   --width-column: min(100%, 68rem);
-  --width-measure: min(100%, 68rem);
+  --width-measure: min(100%, 72ch);
 }
 
 /*
@@ -356,15 +351,15 @@
   max-width: none;
   font-size: var(--text-p1);
   line-height: var(--text-p1--line-height);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 /*
  * Two measures inside one column. The chapter body column is wide
  * (--width-column); running text is capped at --width-measure and
  * centred inside it, while media — images, diagrams, code blocks,
- * tables, video — spans the whole column. Text stays at a readable
- * ~66 characters; figures stop being squeezed into the text measure.
+ * tables, video — spans the whole column. Figures stop being squeezed
+ * into the text measure.
  *
  * The narrow rule lists text elements explicitly rather than using
  * `.prose > *`. MDX components (diagrams, embeds) render as divs at the
@@ -411,8 +406,7 @@
 
 @media (max-width: 639px) {
   .prose {
-    font-size: 1.0625rem;
-    line-height: 1.65;
+    line-height: 1.75;
   }
 
   .prose h2 {
@@ -425,5 +419,92 @@
 
   .prose img {
     padding: 0.25rem;
+  }
+
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .prose {
+    font-size: 1.25rem;
+  }
+
+}
+
+@media (min-width: 1024px) {
+  .prose {
+    font-size: clamp(1.25rem, 1.12rem + 0.35vw, 1.375rem);
+  }
+}
+
+.zoomable-image__hint {
+  display: none;
+  margin-top: 0.625rem;
+  color: var(--foreground-secondary);
+  font-size: var(--text-small);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.image-viewer {
+  height: 100vh;
+  height: 100dvh;
+  padding-block: env(safe-area-inset-top) env(safe-area-inset-bottom);
+}
+
+.image-viewer__controls {
+  position: absolute;
+  z-index: 20;
+  inset-block-start: calc(env(safe-area-inset-top) + 1rem);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transform: translateX(-50%);
+}
+
+.image-viewer__close {
+  position: absolute;
+  z-index: 20;
+  inset-block-start: calc(env(safe-area-inset-top) + 1rem);
+  inset-inline-end: calc(env(safe-area-inset-right) + 1rem);
+}
+
+.image-viewer__canvas {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: calc(env(safe-area-inset-top) + 5rem) max(1rem, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 1rem) max(1rem, env(safe-area-inset-left));
+}
+
+@media (max-width: 1023px) {
+  .zoomable-image__hint {
+    display: block;
+  }
+
+  .image-viewer__controls {
+    inset-block-start: calc(env(safe-area-inset-top) + 0.75rem);
+    inset-inline: 0.75rem 4rem;
+    justify-content: flex-start;
+    transform: none;
+  }
+
+  .image-viewer__close {
+    inset-block-start: calc(env(safe-area-inset-top) + 0.75rem);
+    inset-inline-end: calc(env(safe-area-inset-right) + 0.75rem);
+  }
+
+  .image-viewer__canvas {
+    padding-block-start: calc(env(safe-area-inset-top) + 5rem);
+    padding-block-end: calc(env(safe-area-inset-bottom) + 1rem);
+    padding-inline: max(0.75rem, env(safe-area-inset-left)) max(0.75rem, env(safe-area-inset-right));
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .prose {
+    font-size: 1.25rem;
   }
 }
