@@ -19,6 +19,7 @@ export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) 
   const [offset, setOffset] = useState<Point>({ x: 0, y: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const viewerRef = useRef<HTMLDivElement>(null);
   const pointersRef = useRef(new Map<number, Point>());
   const dragStartRef = useRef<{ point: Point; offset: Point } | null>(null);
   const pinchStartRef = useRef<{ distance: number; scale: number } | null>(null);
@@ -51,6 +52,19 @@ export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) 
       if (event.key === "+" || event.key === "=") setClampedScale(scale + SCALE_STEP);
       if (event.key === "-") setClampedScale(scale - SCALE_STEP);
       if (event.key === "0") reset();
+      if (event.key === "Tab") {
+        const controls = viewerRef.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)");
+        if (!controls?.length) return;
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener("keydown", onKeyDown);
 
@@ -137,18 +151,20 @@ export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) 
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={alt ?? ""} height={height} className={className} style={inlineStyle} {...rest} />
       </button>
+      <span className="zoomable-image__hint" aria-hidden="true">Tap to open and zoom</span>
 
       {open && (
         <div
+          ref={viewerRef}
           role="dialog"
           aria-modal="true"
           aria-label={alt || "Image viewer"}
-          className="fixed inset-0 z-50 bg-black/95"
+          className="image-viewer fixed inset-0 z-50 bg-black/95"
         >
-          <div className="absolute left-1/2 top-4 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/20 bg-black/70 p-1 text-white shadow-lg">
-            <button type="button" onClick={() => setClampedScale(scale - SCALE_STEP)} disabled={scale <= MIN_SCALE} aria-label="Zoom out" className="flex h-10 w-10 items-center justify-center rounded-full text-xl disabled:opacity-30">−</button>
-            <button type="button" onClick={reset} aria-label="Reset zoom" className="min-w-16 rounded-full px-3 py-2 text-sm tabular-nums">{Math.round(scale * 100)}%</button>
-            <button type="button" onClick={() => setClampedScale(scale + SCALE_STEP)} disabled={scale >= MAX_SCALE} aria-label="Zoom in" className="flex h-10 w-10 items-center justify-center rounded-full text-xl disabled:opacity-30">+</button>
+          <div className="image-viewer__controls gap-1 rounded-full border border-white/20 bg-black/70 p-1 text-white shadow-lg">
+            <button type="button" onClick={() => setClampedScale(scale - SCALE_STEP)} disabled={scale <= MIN_SCALE} aria-label="Zoom out" className="flex h-11 w-11 items-center justify-center rounded-full text-xl disabled:opacity-30">−</button>
+            <button type="button" onClick={reset} aria-label="Reset zoom" className="min-h-11 min-w-16 rounded-full px-3 py-2 text-sm tabular-nums">{Math.round(scale * 100)}%</button>
+            <button type="button" onClick={() => setClampedScale(scale + SCALE_STEP)} disabled={scale >= MAX_SCALE} aria-label="Zoom in" className="flex h-11 w-11 items-center justify-center rounded-full text-xl disabled:opacity-30">+</button>
           </div>
 
           <button
@@ -156,7 +172,7 @@ export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) 
             type="button"
             onClick={close}
             aria-label="Close image viewer"
-            className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/70 text-2xl leading-none text-white hover:border-white/50"
+            className="image-viewer__close flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/70 text-2xl leading-none text-white hover:border-white/50"
           >
             ×
           </button>
@@ -168,7 +184,7 @@ export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) 
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
             onDoubleClick={toggleZoom}
-            className={`flex h-full w-full select-none items-center justify-center overflow-hidden p-4 pt-20 sm:p-8 sm:pt-20 ${scale > MIN_SCALE ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+            className={`image-viewer__canvas select-none ${scale > MIN_SCALE ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
             style={{ touchAction: "none" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
