@@ -7,6 +7,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { assignSafeNames } from "./lib/image-names.mjs";
 import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
 import { CHAPTERS, BONUS_PAGES } from "./lib/chapters.mjs";
 
@@ -33,21 +34,16 @@ function findImageFiles(dir) {
   return found;
 }
 
-function slugifyFilename(name) {
-  const ext = path.extname(name);
-  const base = path.basename(name, ext);
-  return base.replace(/\s+/g, "-").toLowerCase() + ext.toLowerCase();
-}
-
 // Build a lookup from every image's original filename (as it would appear
 // in an Obsidian embed or a markdown link, spaces and all) to its copied,
 // URL-safe location under public/preview-images/.
 function buildImageMap() {
+  const files = findImageFiles(PRIVATE_DIR);
+  const safeNames = assignSafeNames(files.map((f) => path.basename(f)));
   const map = new Map();
-  for (const fullPath of findImageFiles(PRIVATE_DIR)) {
+  for (const fullPath of files) {
     const originalName = path.basename(fullPath);
-    const safeName = slugifyFilename(originalName);
-    map.set(originalName, { fullPath, safeName });
+    map.set(originalName, { fullPath, safeName: safeNames.get(originalName) });
   }
   return map;
 }
