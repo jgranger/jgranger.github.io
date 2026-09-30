@@ -19,3 +19,20 @@ Use generated diagrams for precise layouts. Use separately authored variant artw
 Run `npm run images:audit` to list chapter image references and their variant coverage. The command also generates defined variants. Missing variants are review candidates, not failures: photographs and simple diagrams can use their original composition.
 
 Review the rendered phone and tablet assets before publishing new definitions. Verify all branches, loops, labels, and return paths against the original. Existing source images remain the desktop version.
+
+## Composition rules
+
+Viewport changes can alter the layout and level of detail, not only the image dimensions. The `layout` field selects a reusable composition:
+
+| Layout | Phone | Tablet | Desktop |
+| --- | --- | --- | --- |
+| `campaign` | Vertical icon cards with short captions | Wider vertical rows | Original horizontal artwork |
+| `campaign` with `agent` | A shared monitoring line connects every stage to the agent | Wider rows with the same shared connection | Original artwork |
+| `hub` | Main route, shared capabilities, and optional handoff occupy separate areas | Main route above a two-column capability group | Original architecture |
+| `stages` | Stage labels, graphics, and short captions only | Graphics beside concise explanations | Stage title, graphic, and concise explanation columns |
+
+A shared capability connection must not imply that tools run sequentially. Return paths, routing exits, and conditional handoffs must remain visible. Longer phone explanations belong in the chapter or an optional detail block, not inside a reduced diagram.
+
+`viewports` defaults to `["phone", "tablet"]`. Include `desktop` when the desktop artwork also needs revision. The generated `.desktop.svg` becomes the default image without changing the chapter reference. Original source files are retained.
+
+Use `caption` for a stage's short action label and `description` for its concise larger-screen explanation. A capability node can supply `phoneDetail` to reduce supporting labels on a narrow screen. These are editorial choices in one private definition, not separate files maintained by hand.

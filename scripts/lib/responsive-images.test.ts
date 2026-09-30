@@ -25,3 +25,9 @@ describe("responsive image discovery", () => {
     expect(() => responsiveSources("/book-images/a-diagram-1.png", ambiguous, "/book-images")).toThrow("Multiple phone variants");
   });
 });
+
+it("selects an independently composed desktop version", () => {
+  const variants = new Map(images);
+  variants.set("A diagram.desktop.svg", { safeName: "a-diagram.desktop.svg" });
+  expect(responsiveSources("/book-images/a-diagram-1.png", variants, "/book-images").desktopSrc).toBe("/book-images/a-diagram.desktop.svg");
+});

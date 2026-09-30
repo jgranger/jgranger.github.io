@@ -5,7 +5,7 @@ export function responsiveSources(src, imageMap, prefix) {
   if (!original) return {};
   const stem = original.slice(0, -path.extname(original).length);
   const sources = {};
-  for (const viewport of ["phone", "tablet"]) {
+  for (const viewport of ["phone", "tablet", "desktop"]) {
     const candidates = [...imageMap.entries()].filter(([name]) =>
       name.startsWith(`${stem}.${viewport}.`) && /\.(svg|webp|png|jpe?g)$/i.test(name)
     );
