@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { composedLayouts } from "./composed-diagrams.mjs";
 
 const escape = (value) => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
@@ -18,6 +19,11 @@ function wrap(text, width, fontSize) {
 }
 
 export function renderDiagram(spec, viewport) {
+  if (spec.layout) {
+    const render = composedLayouts[spec.layout];
+    if (!render) throw new Error(`Unknown diagram layout: ${spec.layout}`);
+    return render(spec, viewport);
+  }
   const width = viewport === "phone" ? 400 : 760;
   const margin = viewport === "phone" ? 24 : 40;
   const inner = width - margin * 2;
@@ -64,9 +70,12 @@ export function generateDiagramVariants(privateDir) {
   if (!fs.existsSync(specsDir)) return;
   for (const filename of fs.readdirSync(specsDir).filter(name => name.endsWith(".json"))) {
     const spec = JSON.parse(fs.readFileSync(path.join(specsDir, filename), "utf8"));
-    if (!spec.source || path.basename(spec.source) !== spec.source || !Array.isArray(spec.sections) || !spec.sections.length) throw new Error(`Invalid diagram definition: ${filename}`);
+    if (!spec.source || path.basename(spec.source) !== spec.source) throw new Error(`Invalid diagram definition: ${filename}`);
     if (!fs.existsSync(path.join(privateDir, spec.source))) throw new Error(`Missing diagram source: ${spec.source}`);
     const stem = spec.source.slice(0, -path.extname(spec.source).length);
-    for (const viewport of ["phone", "tablet"]) fs.writeFileSync(path.join(privateDir, `${stem}.${viewport}.svg`), renderDiagram(spec, viewport));
+    for (const viewport of spec.viewports || ["phone", "tablet"]) {
+      if (!["phone", "tablet", "desktop"].includes(viewport)) throw new Error(`Invalid viewport: ${viewport}`);
+      fs.writeFileSync(path.join(privateDir, `${stem}.${viewport}.svg`), renderDiagram(spec, viewport));
+    }
   }
 }

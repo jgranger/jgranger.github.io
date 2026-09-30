@@ -19,3 +19,8 @@ describe("viewport-specific images", () => {
     fireEvent.click(screen.getByRole("button", { name: "Close image viewer" }));
   });
 });
+
+it("uses the revised desktop artwork as the fallback", () => {
+  render(<ZoomableImage src="/original.png" desktopSrc="/revised.svg" phoneSrc="/phone.svg" alt="Revised diagram" />);
+  expect(screen.getByRole("img")).toHaveAttribute("src", "/revised.svg");
+});

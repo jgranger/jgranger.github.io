@@ -18,6 +18,6 @@ for (const file of fs.readdirSync(path.join(root, "chapters")).filter(name => na
 }
 const report = [...references].map(([source, chapters]) => {
   const stem = source.slice(0, -path.extname(source).length);
-  return { source, chapters, phone: files.find(name => name.startsWith(`${stem}.phone.`)) || null, tablet: files.find(name => name.startsWith(`${stem}.tablet.`)) || null };
+  return { source, chapters, phone: files.find(name => name.startsWith(`${stem}.phone.`)) || null, desktop: files.find(name => name.startsWith(`${stem}.desktop.`)) || null, tablet: files.find(name => name.startsWith(`${stem}.tablet.`)) || null };
 });
 console.log(JSON.stringify(report, null, 2));

@@ -11,11 +11,12 @@ type Point = { x: number; y: number };
 type ZoomableImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
   phoneSrc?: string;
   tabletSrc?: string;
+  desktopSrc?: string;
 };
 
 export function ZoomableImage(props: ZoomableImageProps) {
-  const { src, phoneSrc, tabletSrc, alt, width, height, className, style, ...rest } = props;
-  const [viewerSrc, setViewerSrc] = useState(src);
+  const { src, phoneSrc, tabletSrc, desktopSrc, alt, width, height, className, style, ...rest } = props;
+  const [viewerSrc, setViewerSrc] = useState(desktopSrc || src);
   // Obsidian's ![[file.png|420]] resize arrives as `width`. `.prose img`
   // forces width: auto, so a plain width attribute is ignored — apply it
   // as a cap instead, never wider than the column.
@@ -151,7 +152,7 @@ export function ZoomableImage(props: ZoomableImageProps) {
         ref={triggerRef}
         type="button"
         onClick={(event) => {
-          setViewerSrc(event.currentTarget.querySelector("img")?.currentSrc || src);
+          setViewerSrc(event.currentTarget.querySelector("img")?.currentSrc || desktopSrc || src);
           setOpen(true);
         }}
         aria-label={alt ? `Open image viewer: ${alt}` : "Open image viewer"}
@@ -161,7 +162,7 @@ export function ZoomableImage(props: ZoomableImageProps) {
         <picture>
           {phoneSrc && <source media="(max-width: 639px)" srcSet={phoneSrc} />}
           {tabletSrc && <source media="(min-width: 640px) and (max-width: 1023px)" srcSet={tabletSrc} />}
-          <img src={src} alt={alt ?? ""} height={phoneSrc || tabletSrc ? undefined : height} className={className} style={inlineStyle} {...rest} />
+          <img src={desktopSrc || src} alt={alt ?? ""} height={phoneSrc || tabletSrc ? undefined : height} className={className} style={inlineStyle} {...rest} />
         </picture>
       </button>
       <span className="zoomable-image__hint" aria-hidden="true">Tap to open and zoom</span>
