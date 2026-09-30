@@ -12,6 +12,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { generateDiagramVariants } from "./lib/diagram-variants.mjs";
+import { imageAttributes } from "./lib/responsive-images.mjs";
 import { assignSafeNames } from "./lib/image-names.mjs";
 import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
 import { CHAPTERS } from "./lib/chapters.mjs";
@@ -33,7 +35,7 @@ const isMedia = (name) => IMAGE_EXTENSIONS.has(extOf(name)) || VIDEO_EXTENSIONS.
 function mediaTag(src, width, alt) {
   const widthAttr = width ? ` width="${width}"` : "";
   if (VIDEO_EXTENSIONS.has(extOf(src))) return `<InlineVideo src="${src}"${widthAttr} />`;
-  return `<ZoomableImage src="${src}"${widthAttr} alt="${alt}" />`;
+  return `<ZoomableImage src="${src}"${widthAttr} alt={${JSON.stringify(alt)}}${imageAttributes(src, imageMap, "/book-images")} />`;
 }
 
 function findImageFiles(dir) {
@@ -115,6 +117,7 @@ function yamlString(value) {
 fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
+generateDiagramVariants(PRIVATE_DIR);
 const imageMap = buildImageMap();
 copyImages(imageMap);
 

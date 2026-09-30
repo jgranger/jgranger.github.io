@@ -8,8 +8,14 @@ const SCALE_STEP = 0.5;
 
 type Point = { x: number; y: number };
 
-export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
-  const { src, alt, width, height, className, style, ...rest } = props;
+type ZoomableImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
+  phoneSrc?: string;
+  tabletSrc?: string;
+};
+
+export function ZoomableImage(props: ZoomableImageProps) {
+  const { src, phoneSrc, tabletSrc, alt, width, height, className, style, ...rest } = props;
+  const [viewerSrc, setViewerSrc] = useState(src);
   // Obsidian's ![[file.png|420]] resize arrives as `width`. `.prose img`
   // forces width: auto, so a plain width attribute is ignored — apply it
   // as a cap instead, never wider than the column.
@@ -144,12 +150,19 @@ export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) 
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={(event) => {
+          setViewerSrc(event.currentTarget.querySelector("img")?.currentSrc || src);
+          setOpen(true);
+        }}
         aria-label={alt ? `Open image viewer: ${alt}` : "Open image viewer"}
         className="block w-full cursor-zoom-in border-0 bg-transparent p-0"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt ?? ""} height={height} className={className} style={inlineStyle} {...rest} />
+        <picture>
+          {phoneSrc && <source media="(max-width: 639px)" srcSet={phoneSrc} />}
+          {tabletSrc && <source media="(min-width: 640px) and (max-width: 1023px)" srcSet={tabletSrc} />}
+          <img src={src} alt={alt ?? ""} height={phoneSrc || tabletSrc ? undefined : height} className={className} style={inlineStyle} {...rest} />
+        </picture>
       </button>
       <span className="zoomable-image__hint" aria-hidden="true">Tap to open and zoom</span>
 
@@ -189,7 +202,7 @@ export function ZoomableImage(props: React.ImgHTMLAttributes<HTMLImageElement>) 
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={src}
+              src={viewerSrc}
               alt={alt ?? ""}
               draggable={false}
               onClick={(event) => event.stopPropagation()}
