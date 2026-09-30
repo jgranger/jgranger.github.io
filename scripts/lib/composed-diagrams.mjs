@@ -31,12 +31,12 @@ function canvas(width, height, title, description) {
     body.push(`<rect x="${x - w / 2}" y="${y - size}" width="${w}" height="${content.length * size * 1.3 + 8}" rx="4" fill="#070e11"/>`);
     text(value, x, y, maxWidth, size, colors.muted, 400, "middle");
   };
-  const card = (node, x, y, w, h, color = colors.cyan) => {
+  const card = (node, x, y, w, h, color = colors.cyan, titleColor = color) => {
     rect(x, y, w, h, color);
-    const head = text(node.title, x + 16, y + 32, w - 32, 22, color, 600);
+    const head = text(node.title, x + 16, y + 32, w - 32, 22, titleColor, 600);
     if (node.detail) text(width <= 400 ? node.phoneDetail || node.detail : node.detail, x + 16, y + 40 + head, w - 32, width <= 400 ? 20 : 18, colors.muted);
   };
-  const finish = () => `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title desc"><title id="title">${esc(title)}</title><desc id="desc">${esc(description)}</desc><defs><linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${colors.cyan}"/><stop offset="1" stop-color="${colors.purple}"/></linearGradient><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="${colors.muted}"/></marker></defs><rect width="100%" height="100%" fill="#070e11"/><g font-family="Arial, sans-serif">${body.join("")}</g></svg>`;
+  const finish = () => `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title desc"><title id="title">${esc(title)}</title><desc id="desc">${esc(description)}</desc><defs><linearGradient id="agent-edge" x1="0%" y1="0%" x2="100%" y2="0%"><stop stop-color="#00d5ed"/><stop offset="0.5" stop-color="#328cff"/><stop offset="1" stop-color="#df27ed"/></linearGradient><linearGradient id="campaign-agent-edge" x1="0%" y1="0%" x2="100%" y2="0%"><stop stop-color="#55a9ef"/><stop offset="0.2" stop-color="#ffda8c"/><stop offset="0.8" stop-color="#ffda8c"/><stop offset="1" stop-color="#9473ef"/></linearGradient><linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${colors.cyan}"/><stop offset="1" stop-color="${colors.purple}"/></linearGradient><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="${colors.muted}"/></marker></defs><rect width="100%" height="100%" fill="#070e11"/><g font-family="Arial, sans-serif">${body.join("")}</g></svg>`;
   return { body, text, path, rect, dot, label, card, finish };
 }
 
@@ -87,7 +87,7 @@ export function renderCampaign(spec, viewport) {
   });
   if (rail) {
     d.text(spec.agent.connection, 46, total + 11, width - 66, phone ? 18 : 22, colors.gold);
-    d.card(spec.agent, 46, total + 38, width - 66, 150, colors.gold);
+    d.card(spec.agent, 46, total + 38, width - 66, 150, "url(#campaign-agent-edge)", colors.ink);
   }
   return d.finish();
 }
@@ -148,7 +148,7 @@ export function renderHub(spec, viewport) {
     d.text(n.resolved.title, 252, 409, 136, 18, colors.purple, 600, "middle");
     d.text(n.resolved.detail, 252, 438, 136, 18, colors.muted, 400, "middle");
     d.text(spec.groups.agent, 162, 475, 178, 20, colors.cyan, 600);
-    d.card(n.agent, 68, 517, 260, 119, colors.cyan);
+    d.card(n.agent, 68, 517, 260, 119, "url(#agent-edge)", "#c4e7ff");
     d.label(spec.edges.reply, 228, 680, 200, 18);
     d.path("M108 640 V706 H44 V1190", colors.cyan, "none");
     d.text(spec.groups.context, 78, 739, 246, 20, colors.gold, 600);
@@ -176,7 +176,7 @@ export function renderHub(spec, viewport) {
     d.path("M690 180 H704 V290 H684", colors.purple);
     d.card(n.resolved, 396, 255, 288, 72, colors.purple);
     d.text(spec.groups.agent, 32, 399, 650, 22, colors.cyan, 600);
-    d.card(n.agent, 220, 420, 280, 120);
+    d.card(n.agent, 220, 420, 280, 120, "url(#agent-edge)", "#c4e7ff");
     d.path("M214 480 H12 V181 H26");
     d.label(spec.edges.reply, 136, 308, 215, 18);
     d.text(spec.groups.context, 34, 588, 610, 22, colors.gold, 600);
