@@ -23,6 +23,18 @@ const PRIVATE_DIR = path.join(ROOT, "docs/private");
 const IMAGES_OUT_DIR = path.join(ROOT, "public/book-images");
 
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"]);
+const VIDEO_EXTENSIONS = new Set([".mp4", ".webm", ".mov", ".m4v"]);
+
+const extOf = (name) => path.extname(name).toLowerCase();
+const isMedia = (name) => IMAGE_EXTENSIONS.has(extOf(name)) || VIDEO_EXTENSIONS.has(extOf(name));
+
+// Videos ride along with the images: same copy step, same embed syntax,
+// just a different component so they play instead of zoom.
+function mediaTag(src, width, alt) {
+  const widthAttr = width ? ` width="${width}"` : "";
+  if (VIDEO_EXTENSIONS.has(extOf(src))) return `<InlineVideo src="${src}"${widthAttr} />`;
+  return `<ZoomableImage src="${src}"${widthAttr} alt="${alt}" />`;
+}
 
 function findImageFiles(dir) {
   const found = [];
@@ -30,7 +42,7 @@ function findImageFiles(dir) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       found.push(...findImageFiles(fullPath));
-    } else if (IMAGE_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) {
+    } else if (isMedia(entry.name)) {
       found.push(fullPath);
     }
   }
@@ -67,9 +79,7 @@ function rewriteImages(content, imageMap) {
     (match, filename, width) => {
       const src = resolve(filename);
       if (!src) return match;
-      return width
-        ? `<ZoomableImage src="${src}" width="${width}" alt="" />`
-        : `<ZoomableImage src="${src}" alt="" />`;
+      return mediaTag(src, width, "");
     }
   );
 
@@ -81,9 +91,7 @@ function rewriteImages(content, imageMap) {
       if (!src) return match;
       const widthMatch = altText.match(/\|(\d+)$/);
       const width = widthMatch ? widthMatch[1] : null;
-      return width
-        ? `<ZoomableImage src="${src}" width="${width}" alt="" />`
-        : `<ZoomableImage src="${src}" alt="${altText}" />`;
+      return mediaTag(src, width, width ? "" : altText);
     }
   );
 

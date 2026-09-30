@@ -321,7 +321,8 @@
 
   /* Screenshots/figures embedded in chapter prose get the same glowing
      frame as other cards, instead of a bare image on the dark background. */
-  .prose img {
+  .prose img,
+  .prose video.book-video {
     display: block;
     width: auto;
     max-width: 100%;
@@ -332,6 +333,12 @@
     border: 1px solid var(--border);
     box-shadow: 0 0 24px 0 color-mix(in oklab, var(--accent-cyan) 8%, transparent);
     padding: 0.5rem;
+  }
+
+  /* A video has no intrinsic size until its metadata loads, so fill the
+     column the way the full-size screenshots beside it do. */
+  .prose video.book-video {
+    width: 100%;
   }
 }
 

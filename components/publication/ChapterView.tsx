@@ -17,6 +17,7 @@ import { TechnicalDetail } from "@/components/content/TechnicalDetail";
 import { WideSection } from "@/components/content/WideSection";
 import { FullBleedSection } from "@/components/content/FullBleedSection";
 import { VideoEmbed } from "@/components/media/VideoEmbed";
+import { InlineVideo } from "@/components/media/InlineVideo";
 import { ZoomableImage } from "@/components/media/ZoomableImage";
 import { MermaidDiagram } from "@/components/diagrams/MermaidDiagram";
 import { AnimatedFlow } from "@/components/diagrams/AnimatedFlow";
@@ -50,6 +51,7 @@ const MDX_COMPONENTS = {
   WideSection,
   FullBleedSection,
   VideoEmbed,
+  InlineVideo,
   MermaidDiagram,
   AnimatedFlow: () => <AnimatedFlow data={askProductFlow} />,
   GalaxyComparison,
