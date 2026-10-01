@@ -1,3 +1,5 @@
+import { dogfoodingScene } from "./dogfooding-scenes.mjs";
+
 const esc = value => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const colors = { ink: "#eeeae4", muted: "#bcc9cb", cyan: "#56bfd4", blue: "#739ee2", purple: "#aa91cf", gold: "#d8bb82", green: "#a5bb89" };
 
@@ -250,67 +252,41 @@ export function renderDogfooding(spec, viewport) {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height - cropTop}" viewBox="0 ${cropTop} ${width} ${height - cropTop}" role="img" aria-labelledby="title desc"><title id="title">${esc(spec.title)}</title><desc id="desc">${esc(spec.description)}</desc><image width="${width}" height="${height}" href="${spec.sourceData}"/></svg>`;
   }
   const width = 360;
-  const teal = "#389d9b";
-  const purple = "#8262b0";
-  const blue = "#487eb1";
+  const teal = "#54aaa5";
+  const purple = "#9678bd";
+  const blue = "#6398c0";
   const palette = [teal, purple, blue];
-  const top = 260;
-  const gap = 28;
-  const stages = spec.steps.map(step => ({ ...step, height: 98 + lines(step.caption, 252, 18).length * 23.4 }));
-  const outputTop = top + stages.reduce((sum, step) => sum + step.height + gap, 0);
-  const d = canvas(width, outputTop + spec.outputs.length * 86 + 24, spec.title, spec.description);
-  d.body.push(`<defs><linearGradient id="feedback-flow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${teal}"/><stop offset="1" stop-color="${purple}"/></linearGradient></defs>`);
-  d.text(spec.input.title, 20, 38, 320, 24, colors.ink, 600);
-  spec.input.items.forEach((item, i) => {
-    const x = i % 2 === 0 ? 20 : 188;
-    const y = 62 + Math.floor(i / 2) * 78;
-    const color = palette[i % 3];
-    d.rect(x, y, 152, 60, color, "#101b23", 6);
-    d.body.push(`<path d="M${x + 12} ${y + 14} h35 m-35 7 h54" stroke="${color}" opacity="0.65"/>`);
-    d.text(item, x + 12, y + 44, 132, 17, colors.ink);
-    d.path(`M${x + 76} ${y + 60} V224 L180 250`, color, "none");
-  });
-  d.dot(180, 250, teal, 6);
-  d.body.push(`<path d="M14 280 L56 ${outputTop - 30} H304 L346 280" fill="#102025" fill-opacity="0.6" stroke="url(#feedback-flow)" stroke-opacity="0.3"/>`);
-  d.path(`M18 ${outputTop + 204} H8 V244 H180`, purple, "end", true);
+  const kinds = ["anchor", "mark", "collect", "classify", "dedupe", "route", "close"];
+  const top = 278;
+  const stages = spec.steps.map(step => ({ ...step, height: 181 + lines(step.title, 294, 22).length * 28.6 + lines(step.caption, 294, 18).length * 23.4 }));
+  const outputTop = top + stages.reduce((sum, step) => sum + step.height, 0) + 10;
+  const d = canvas(width, outputTop + spec.outputs.length * 86 + 16, spec.title, spec.description);
+  d.body.push(`<defs><linearGradient id="feedback-rail" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${teal}"/><stop offset="0.5" stop-color="${blue}"/><stop offset="1" stop-color="${purple}"/></linearGradient><radialGradient id="feedback-atmosphere"><stop stop-color="${teal}" stop-opacity="0.11"/><stop offset="1" stop-color="${teal}" stop-opacity="0"/></radialGradient></defs><ellipse cx="188" cy="143" rx="185" ry="143" fill="url(#feedback-atmosphere)"/>`);
+  d.text(spec.input.title, 24, 36, 312, 24, colors.ink, 600);
+  d.body.push(`<g transform="translate(40,58)">${dogfoodingScene("input")}</g>`);
+  d.text(spec.input.items.join(" · "), 24, 221, 312, 16, colors.muted);
+  d.path(`M24 ${top + 15} V${outputTop - 20}`, "url(#feedback-rail)", "none");
   let y = top;
   stages.forEach((step, i) => {
     const color = palette[i % palette.length];
-    const inset = 20 + i * 3;
-    const w = width - inset * 2;
-    d.body.push(`<path d="M${inset} ${y} H${width - inset} L${width - inset - 3} ${y + step.height} H${inset + 3} Z" fill="${color}" fill-opacity="0.075"/>`);
-    d.path(`M${inset} ${y} H${width - inset}`, color, "none");
-    d.body.push(`<path d="M${inset} ${y + 8} V${y + step.height - 8}" stroke="${color}" stroke-width="4"/>`);
-    const motifs = [
-      { points: [[0,14],[26,14],[52,0],[52,28],[78,14]], edges: [[0,1],[1,2],[1,3],[2,4],[3,4]] },
-      { points: [[0,0],[0,28],[28,14],[58,14],[78,14]], edges: [[0,2],[1,2],[2,3],[3,4]] },
-      { points: [[0,0],[0,14],[0,28],[26,0],[26,28],[52,14],[78,14]], edges: [[0,5],[1,5],[2,5],[3,5],[4,5],[5,6]] },
-      { points: [[0,14],[30,14],[56,0],[78,0],[56,28],[78,28]], edges: [[0,1],[1,2],[2,3],[1,4],[4,5]] },
-      { points: [[0,0],[0,28],[24,0],[24,28],[52,14],[78,14]], edges: [[0,4],[1,4],[2,4],[3,4],[4,5]] },
-      { points: [[0,14],[26,14],[52,0],[78,0],[52,28],[78,28]], edges: [[0,1],[1,2],[2,3],[1,4],[4,5]] },
-      { points: [[0,14],[26,0],[52,0],[78,14],[52,28],[26,28]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]] },
-    ];
-    const motif = motifs[i % motifs.length];
-    const gx = inset + w - 104;
-    const gy = y + 19;
-    motif.edges.forEach(([a,b]) => d.path(`M${gx + motif.points[a][0]} ${gy + motif.points[a][1]} L${gx + motif.points[b][0]} ${gy + motif.points[b][1]}`, color, "none"));
-    motif.points.forEach(([px,py], n) => {
-      d.body.push(`<circle cx="${gx + px}" cy="${gy + py}" r="7" fill="${color}" opacity="0.12"/>`);
-      d.dot(gx + px, gy + py, color, n === motif.points.length - 1 ? 4 : 3);
-    });
-    d.text(String(i + 1).padStart(2, "0"), inset + 16, y + 41, 80, 24, color, 600);
-    const head = d.text(step.title, inset + 16, y + 77, w - 32, 21, colors.ink, 600);
-    d.text(step.caption, inset + 16, y + 83 + head, w - 32, 18, colors.muted);
-    d.path(`M180 ${y + step.height + 3} V${y + step.height + gap - 6}`, color);
-    y += step.height + gap;
+    d.dot(24, y + 15, "#070e11", 13);
+    d.body.push(`<circle cx="24" cy="${y + 15}" r="12" fill="none" stroke="${color}" stroke-width="1.2"/>`);
+    d.text(String(i + 1), 24, y + 21, 22, 16, color, 600, "middle");
+    const head = d.text(step.title, 48, y + 22, 294, 22, colors.ink, 600);
+    const graphicY = y + 22 + head + 9;
+    d.body.push(`<g transform="translate(56,${graphicY})">${dogfoodingScene(kinds[i] || "collect")}</g>`);
+    d.text(step.caption, 48, graphicY + 147, 294, 18, colors.muted);
+    if (i < stages.length - 1) d.path(`M48 ${y + step.height - 15} H338`, "#20343b", "none");
+    y += step.height;
   });
+  d.path(`M24 ${outputTop - 20} V${outputTop + (spec.outputs.length - 1) * 86 + 35}`, purple, "none");
   spec.outputs.forEach((output, i) => {
     const oy = outputTop + i * 86;
     const color = palette[i % 3];
-    d.rect(24, oy, 312, 64, color, "#101b23", 6);
-    d.body.push(`<path d="M36 ${oy + 18} H54 M36 ${oy + 26} H48 M36 ${oy + 34} H54" stroke="${color}" stroke-width="2"/>`);
-    d.text(output.title, 68, oy + 40, 252, 21, colors.ink, 600);
-    if (i < spec.outputs.length - 1) d.path(`M180 ${oy + 66} V${oy + 80}`, color, "none");
+    d.path(`M24 ${oy + 35} H40`, color, "none");
+    d.rect(40, oy, 302, 72, "#30434c", "#0d191f", 8);
+    d.body.push(`<g transform="translate(46,${oy + 3})">${dogfoodingScene(["ticket", "document", "thread"][i] || "document")}</g>`);
+    d.text(output.title, 111, oy + 43, 219, 21, colors.ink, 600);
   });
   return d.finish();
 }
