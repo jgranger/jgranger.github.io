@@ -244,4 +244,48 @@ export function renderMessageLoop(spec) {
   return d.finish();
 }
 
-export const composedLayouts = { campaign: renderCampaign, stages: renderSearchStages, hub: renderHub, messageLoop: renderMessageLoop };
+export function renderDogfooding(spec, viewport) {
+  if (viewport !== "phone") {
+    const { width, height, cropTop } = spec.artwork;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height - cropTop}" viewBox="0 ${cropTop} ${width} ${height - cropTop}" role="img" aria-labelledby="title desc"><title id="title">${esc(spec.title)}</title><desc id="desc">${esc(spec.description)}</desc><image width="${width}" height="${height}" href="${spec.sourceData}"/></svg>`;
+  }
+  const width = 360;
+  const top = 224;
+  const gap = 30;
+  const stages = spec.steps.map(step => ({ ...step, height: 60 + lines(step.title, 252, 21).length * 27.3 + lines(step.caption, 284, 18).length * 23.4 }));
+  const outputTop = top + stages.reduce((sum, step) => sum + step.height + gap, 0);
+  const d = canvas(width, outputTop + spec.outputs.length * 80 + 16, spec.title, spec.description);
+  d.rect(12, 12, 336, 178, "url(#edge)");
+  d.text(spec.input.title, 28, 47, 304, 23, colors.ink, 600);
+  const inputColors = [colors.cyan, colors.blue, colors.purple, colors.gold];
+  spec.input.items.forEach((item, i) => {
+    const x = i % 2 === 0 ? 28 : 194;
+    const y = 86 + Math.floor(i / 2) * 62;
+    d.dot(x + 6, y - 6, inputColors[i], 5);
+    d.text(item, x + 22, y, 132, 18, colors.muted);
+  });
+  d.path("M180 196 V218");
+  let y = top;
+  stages.forEach((step, i) => {
+    const gold = step.human;
+    d.rect(12, y, 336, step.height, gold ? colors.gold : "url(#edge)");
+    d.dot(38, y + 30, "#192832", 14);
+    d.text(String(i + 1), 38, y + 36, 24, 17, gold ? colors.gold : colors.cyan, 600, "middle");
+    const head = d.text(step.title, 64, y + 36, 268, 21, colors.ink, 600);
+    d.text(step.caption, 28, y + 54 + head, 304, 18, gold ? colors.gold : colors.muted);
+    if (i < stages.length - 1) d.path(`M180 ${y + step.height + 5} V${y + step.height + gap - 6}`);
+    y += step.height + gap;
+  });
+  d.path(`M180 ${outputTop - gap + 5} V${outputTop - 12} H4 V${outputTop + (spec.outputs.length - 1) * 80 + 31}`, colors.muted, "none");
+  spec.outputs.forEach((output, i) => {
+    const oy = outputTop + i * 80;
+    const color = [colors.blue, colors.gold, colors.purple][i];
+    d.rect(12, oy, 336, 62, color);
+    d.path(`M4 ${oy + 31} H12`);
+    d.body.push(`<g transform="translate(28,${oy + 12}) scale(0.8)">${icon(output.icon, 0, 0, color)}</g>`);
+    d.text(output.title, 80, oy + 39, 252, 21, colors.ink, 600);
+  });
+  return d.finish();
+}
+
+export const composedLayouts = { campaign: renderCampaign, stages: renderSearchStages, hub: renderHub, messageLoop: renderMessageLoop, dogfooding: renderDogfooding };
