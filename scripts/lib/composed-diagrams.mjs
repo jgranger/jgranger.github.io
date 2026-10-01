@@ -93,14 +93,14 @@ export function renderCampaign(spec, viewport) {
     const ay = agentOnTop ? 96 : total + 38;
     const aw = width - ax - 20;
     const ah = phone ? 224 : 190;
-    const ink = "#211d16";
+    const ink = colors.ink;
     d.text(spec.agent.connection, 46, agentOnTop ? 362 : total + 11, width - 66, phone ? 18 : 22, colors.gold);
-    d.body.push(`<rect x="${ax}" y="${ay}" width="${aw}" height="${ah}" rx="18" fill="#dfc18b" stroke="#f5dba7" stroke-width="3"/>`);
-    d.dot(ax + 38, ay + 48, ink, 23);
-    d.body.push(`<g transform="translate(${ax + 23},${ay + 33})" fill="none" stroke="#f5dba7" stroke-width="2" stroke-linecap="round"><circle cx="15" cy="8" r="6"/><path d="M3 28V24A12 12 0 0 1 27 24V28M0 15H6M24 15H30"/></g>`);
+    d.body.push(`<rect x="${ax}" y="${ay}" width="${aw}" height="${ah}" rx="16" fill="#080f12" stroke="url(#campaign-agent-edge)" stroke-width="3"/>`);
+    d.body.push(`<circle cx="${ax + 39}" cy="${ay + 48}" r="28" fill="none" stroke="url(#campaign-agent-edge)" stroke-width="2"/>`);
+    d.body.push(`<g transform="translate(${ax + 23},${ay + 25})" fill="none" stroke="${colors.gold}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="10" r="7"/><path d="M5 27V25A11 11 0 0 1 27 25V27M3 28H29V44H3ZM3 28L16 38L29 28"/></g>`);
     d.text(spec.agent.title, ax + 78, ay + 44, aw - 96, 28, ink, 700);
-    d.path(`M${ax + 20} ${ay + (phone ? 98 : 72)} H${ax + aw - 20}`, "#aa8956", "none");
-    d.text(phone ? spec.agent.phoneDetail || spec.agent.detail : spec.agent.detail, ax + 20, ay + (phone ? 130 : 108), aw - 40, phone ? 21 : 22, ink);
+    d.body.push(`<rect x="${ax + 20}" y="${ay + (phone ? 98 : 82)}" width="${aw - 40}" height="2" rx="1" fill="url(#campaign-agent-edge)"/>`);
+    d.text(phone ? spec.agent.phoneDetail || spec.agent.detail : spec.agent.detail, ax + 20, ay + (phone ? 130 : 108), aw - 40, phone ? 21 : 22, colors.muted);
   }
   return d.finish();
 }
