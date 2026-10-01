@@ -58,16 +58,16 @@ export function renderCampaign(spec, viewport) {
   const gap = phone ? 30 : 26;
   const cardHeight = phone ? 142 : 112;
   const agentOnTop = phone && rail;
-  const start = agentOnTop ? 304 : 96;
+  const start = agentOnTop ? 392 : 96;
   const total = start + spec.steps.length * (cardHeight + gap);
-  const height = total + (rail && !agentOnTop ? 208 : 10);
+  const height = total + (rail && !agentOnTop ? 258 : 10);
   const d = canvas(width, height, spec.title, spec.description);
   d.text(spec.title, 20, 34, width - 40, phone ? 25 : 30, colors.ink, 600);
   const x = rail ? 46 : 20;
   const w = width - x - 20;
   const center = x + w / 2;
   if (rail) d.path(agentOnTop
-    ? `M46 171 H18 V${total - gap - cardHeight / 2}`
+    ? `M40 320 V340 H18 V${total - gap - cardHeight / 2}`
     : `M18 ${start + cardHeight / 2} V${total + 80} H46`, colors.gold, "none", true);
   spec.steps.forEach((step, i) => {
     const y = start + i * (cardHeight + gap);
@@ -89,8 +89,18 @@ export function renderCampaign(spec, viewport) {
     }
   });
   if (rail) {
-    d.text(spec.agent.connection, 46, agentOnTop ? 279 : total + 11, width - 66, phone ? 18 : 22, colors.gold);
-    d.card(spec.agent, 46, agentOnTop ? 96 : total + 38, width - 66, 150, "url(#campaign-agent-edge)", colors.ink);
+    const ax = phone ? 20 : 46;
+    const ay = agentOnTop ? 96 : total + 38;
+    const aw = width - ax - 20;
+    const ah = phone ? 224 : 190;
+    const ink = "#211d16";
+    d.text(spec.agent.connection, 46, agentOnTop ? 362 : total + 11, width - 66, phone ? 18 : 22, colors.gold);
+    d.body.push(`<rect x="${ax}" y="${ay}" width="${aw}" height="${ah}" rx="18" fill="#dfc18b" stroke="#f5dba7" stroke-width="3"/>`);
+    d.dot(ax + 38, ay + 48, ink, 23);
+    d.body.push(`<g transform="translate(${ax + 23},${ay + 33})" fill="none" stroke="#f5dba7" stroke-width="2" stroke-linecap="round"><circle cx="15" cy="8" r="6"/><path d="M3 28V24A12 12 0 0 1 27 24V28M0 15H6M24 15H30"/></g>`);
+    d.text(spec.agent.title, ax + 78, ay + 44, aw - 96, 28, ink, 700);
+    d.path(`M${ax + 20} ${ay + (phone ? 98 : 72)} H${ax + aw - 20}`, "#aa8956", "none");
+    d.text(phone ? spec.agent.phoneDetail || spec.agent.detail : spec.agent.detail, ax + 20, ay + (phone ? 130 : 108), aw - 40, phone ? 21 : 22, ink);
   }
   return d.finish();
 }
