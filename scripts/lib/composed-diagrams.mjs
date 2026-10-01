@@ -55,10 +55,10 @@ export function renderCampaign(spec, viewport) {
   const phone = viewport === "phone";
   const width = phone ? 360 : 720;
   const rail = !!spec.agent;
-  const gap = phone ? 30 : 26;
-  const cardHeight = phone ? 142 : 112;
+  const gap = phone ? 24 : 26;
+  const cardHeight = 112;
   const agentOnTop = phone && rail;
-  const start = agentOnTop ? 392 : 96;
+  const start = agentOnTop ? 348 : 96;
   const total = start + spec.steps.length * (cardHeight + gap);
   const height = total + (rail && !agentOnTop ? 258 : 10);
   const d = canvas(width, height, spec.title, spec.description);
@@ -67,17 +67,19 @@ export function renderCampaign(spec, viewport) {
   const w = width - x - 20;
   const center = x + w / 2;
   if (rail) d.path(agentOnTop
-    ? `M40 320 V340 H18 V${total - gap - cardHeight / 2}`
+    ? `M40 298 V308 H18 V${total - gap - cardHeight / 2}`
     : `M18 ${start + cardHeight / 2} V${total + 80} H46`, colors.gold, "none", true);
   spec.steps.forEach((step, i) => {
     const y = start + i * (cardHeight + gap);
     const color = [colors.cyan, colors.blue, colors.purple, colors.purple, colors.cyan][i % 5];
     d.rect(x, y, w, cardHeight, "url(#edge)");
-    d.body.push(icon(step.icon, x + 16, y + 14, rail ? colors.gold : color));
+    d.body.push(phone
+      ? `<g transform="translate(${x + 16},${y + 12}) scale(0.75)">${icon(step.icon, 0, 0, rail ? colors.gold : color)}</g>`
+      : icon(step.icon, x + 16, y + 14, rail ? colors.gold : color));
     if (phone) {
       d.text(String(i + 1).padStart(2, "0"), x + w - 19, y + 36, 40, 18, colors.muted, 400, "end");
-      d.text(step.title, x + 16, y + 88, w - 32, 22, colors.ink, 600);
-      d.text(step.caption, x + 16, y + 120, w - 32, 20, colors.muted);
+      d.text(step.title, x + 16, y + 68, w - 32, 19, colors.ink, 600);
+      d.text(step.caption, x + 16, y + 94, w - 32, 18, colors.muted);
     } else {
       d.text(step.title, x + 82, y + 40, w - 105, 25, colors.ink, 600);
       d.text(step.caption, x + 82, y + 79, w - 105, 22, colors.muted);
@@ -92,15 +94,15 @@ export function renderCampaign(spec, viewport) {
     const ax = phone ? 20 : 46;
     const ay = agentOnTop ? 96 : total + 38;
     const aw = width - ax - 20;
-    const ah = phone ? 224 : 190;
+    const ah = phone ? 202 : 190;
     const ink = colors.ink;
-    d.text(spec.agent.connection, 46, agentOnTop ? 362 : total + 11, width - 66, phone ? 18 : 22, colors.gold);
+    d.text(spec.agent.connection, 46, agentOnTop ? 326 : total + 11, width - 66, phone ? 18 : 22, colors.gold);
     d.body.push(`<rect x="${ax}" y="${ay}" width="${aw}" height="${ah}" rx="16" fill="#080f12" stroke="url(#campaign-agent-edge)" stroke-width="3"/>`);
     d.body.push(`<circle cx="${ax + 39}" cy="${ay + 48}" r="28" fill="none" stroke="url(#campaign-agent-edge)" stroke-width="2"/>`);
     d.body.push(`<g transform="translate(${ax + 23},${ay + 25})" fill="none" stroke="${colors.gold}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="10" r="7"/><path d="M5 27V25A11 11 0 0 1 27 25V27M3 28H29V44H3ZM3 28L16 38L29 28"/></g>`);
-    d.text(spec.agent.title, ax + 78, ay + 44, aw - 96, 28, ink, 700);
+    d.text(spec.agent.title, ax + 78, ay + 44, phone ? aw - 110 : aw - 96, phone ? 26 : 28, ink, 700);
     d.body.push(`<rect x="${ax + 20}" y="${ay + (phone ? 98 : 82)}" width="${aw - 40}" height="2" rx="1" fill="url(#campaign-agent-edge)"/>`);
-    d.text(phone ? spec.agent.phoneDetail || spec.agent.detail : spec.agent.detail, ax + 20, ay + (phone ? 130 : 108), aw - 40, phone ? 21 : 22, colors.muted);
+    d.text(phone ? spec.agent.phoneDetail || spec.agent.detail : spec.agent.detail, ax + 20, ay + (phone ? 130 : 108), aw - 40, phone ? 19 : 22, colors.muted);
   }
   return d.finish();
 }
@@ -216,4 +218,29 @@ export function renderHub(spec, viewport) {
   return d.finish();
 }
 
-export const composedLayouts = { campaign: renderCampaign, stages: renderSearchStages, hub: renderHub };
+export function renderMessageLoop(spec) {
+  const d = canvas(360, 476, spec.title, spec.description);
+  d.text(spec.title, 20, 34, 320, 26, colors.ink, 600);
+  const positions = [[16, 112, 136], [210, 112, 134], [210, 352, 134]];
+  spec.nodes.forEach((node, i) => {
+    const [x, y, w] = positions[i];
+    const color = [colors.cyan, colors.blue, colors.purple][i];
+    d.rect(x, y, w, 104, "url(#edge)");
+    const cx = x + w / 2;
+    if (node.icon === "person") {
+      d.body.push(`<g transform="translate(${cx - 14},${y + 14})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"><circle cx="14" cy="8" r="7"/><path d="M1 34V29A13 13 0 0 1 27 29V34Z"/></g>`);
+    } else if (node.icon === "product") {
+      d.body.push(`<g transform="translate(${cx - 17},${y + 12})" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"><path d="M17 0L34 10V30L17 40L0 30V10ZM0 10L17 20L34 10M17 20V40"/></g>`);
+    }
+    d.text(node.title, cx, y + (node.icon ? 73 : 59), w - 12, 18, colors.ink, 600, "middle");
+  });
+  d.path("M84 106 V82 H277 V106");
+  d.label(spec.messages[0], 180, 67, 310, 18);
+  d.path("M277 222 V346");
+  d.label(spec.messages[1], 270, 274, 172, 18);
+  d.path("M204 404 H84 V222");
+  d.label(spec.messages[2], 88, 294, 152, 18);
+  return d.finish();
+}
+
+export const composedLayouts = { campaign: renderCampaign, stages: renderSearchStages, hub: renderHub, messageLoop: renderMessageLoop };
