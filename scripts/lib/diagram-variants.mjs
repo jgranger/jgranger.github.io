@@ -73,6 +73,7 @@ export function generateDiagramVariants(privateDir) {
     if (!spec.source || path.basename(spec.source) !== spec.source) throw new Error(`Invalid diagram definition: ${filename}`);
     if (!fs.existsSync(path.join(privateDir, spec.source))) throw new Error(`Missing diagram source: ${spec.source}`);
     const stem = spec.source.slice(0, -path.extname(spec.source).length);
+    if (spec.layout === "dogfooding") spec.sourceData = `data:image/png;base64,${fs.readFileSync(path.join(privateDir, spec.source)).toString("base64")}`;
     for (const viewport of spec.viewports || ["phone", "tablet"]) {
       if (!["phone", "tablet", "desktop"].includes(viewport)) throw new Error(`Invalid viewport: ${viewport}`);
       fs.writeFileSync(path.join(privateDir, `${stem}.${viewport}.svg`), renderDiagram(spec, viewport));
