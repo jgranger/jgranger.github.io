@@ -219,8 +219,8 @@ export function renderHub(spec, viewport) {
 }
 
 export function renderMessageLoop(spec) {
-  const d = canvas(360, 476, spec.title, spec.description);
-  d.text(spec.title, 20, 34, 320, 26, colors.ink, 600);
+  const d = canvas(360, 436, spec.title, spec.description);
+  d.body.push('<g transform="translate(0,-40)">');
   const positions = [[16, 112, 136], [210, 112, 134], [210, 352, 134]];
   spec.nodes.forEach((node, i) => {
     const [x, y, w] = positions[i];
@@ -240,6 +240,7 @@ export function renderMessageLoop(spec) {
   d.label(spec.messages[1], 270, 274, 172, 18);
   d.path("M204 404 H84 V222");
   d.label(spec.messages[2], 88, 294, 152, 18);
+  d.body.push("</g>");
   return d.finish();
 }
 
