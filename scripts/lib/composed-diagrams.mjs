@@ -57,15 +57,18 @@ export function renderCampaign(spec, viewport) {
   const rail = !!spec.agent;
   const gap = phone ? 30 : 26;
   const cardHeight = phone ? 142 : 112;
-  const start = 96;
+  const agentOnTop = phone && rail;
+  const start = agentOnTop ? 304 : 96;
   const total = start + spec.steps.length * (cardHeight + gap);
-  const height = total + (rail ? 208 : 10);
+  const height = total + (rail && !agentOnTop ? 208 : 10);
   const d = canvas(width, height, spec.title, spec.description);
   d.text(spec.title, 20, 34, width - 40, phone ? 25 : 30, colors.ink, 600);
   const x = rail ? 46 : 20;
   const w = width - x - 20;
   const center = x + w / 2;
-  if (rail) d.path(`M18 ${start + cardHeight / 2} V${total + 80} H46`, colors.gold, "none", true);
+  if (rail) d.path(agentOnTop
+    ? `M46 171 H18 V${total - gap - cardHeight / 2}`
+    : `M18 ${start + cardHeight / 2} V${total + 80} H46`, colors.gold, "none", true);
   spec.steps.forEach((step, i) => {
     const y = start + i * (cardHeight + gap);
     const color = [colors.cyan, colors.blue, colors.purple, colors.purple, colors.cyan][i % 5];
@@ -86,8 +89,8 @@ export function renderCampaign(spec, viewport) {
     }
   });
   if (rail) {
-    d.text(spec.agent.connection, 46, total + 11, width - 66, phone ? 18 : 22, colors.gold);
-    d.card(spec.agent, 46, total + 38, width - 66, 150, "url(#campaign-agent-edge)", colors.ink);
+    d.text(spec.agent.connection, 46, agentOnTop ? 279 : total + 11, width - 66, phone ? 18 : 22, colors.gold);
+    d.card(spec.agent, 46, agentOnTop ? 96 : total + 38, width - 66, 150, "url(#campaign-agent-edge)", colors.ink);
   }
   return d.finish();
 }
@@ -131,40 +134,44 @@ export function renderHub(spec, viewport) {
   const n = spec.nodes;
   const phone = viewport === "phone";
   const width = phone ? 360 : 720;
-  const d = canvas(width, phone ? 1630 : 1110, spec.title, spec.description);
+  const d = canvas(width, phone ? 800 : 1110, spec.title, spec.description);
   d.text(spec.title, 20, 36, width - 40, phone ? 26 : 32, colors.ink, 600);
   d.text(spec.subtitle, 20, 65, width - 40, 18, colors.muted);
   if (phone) {
-    d.path("M68 579 H12 V165 H68", colors.muted);
-    d.text(spec.groups.route, 28, 100, 320, 20, colors.cyan, 600);
-    d.card(n.slack, 68, 122, 260, 110);
-    d.path("M198 236 V260");
-    d.label(spec.edges.messages, 258, 246, 120);
-    d.card(n.route, 68, 266, 260, 110);
-    d.path("M118 380 V492 H198 V511");
-    d.label(spec.edges.request, 118, 420, 116);
-    d.path("M332 315 H344 V410 H328", colors.purple);
-    d.rect(176, 380, 152, 76, colors.purple);
-    d.text(n.resolved.title, 252, 409, 136, 18, colors.purple, 600, "middle");
-    d.text(n.resolved.detail, 252, 438, 136, 18, colors.muted, 400, "middle");
-    d.text(spec.groups.agent, 162, 475, 178, 20, colors.cyan, 600);
-    d.card(n.agent, 68, 517, 260, 119, "url(#agent-edge)", "#c4e7ff");
-    d.label(spec.edges.reply, 228, 680, 200, 18);
-    d.path("M108 640 V706 H44 V1190", colors.cyan, "none");
-    d.text(spec.groups.context, 78, 739, 246, 20, colors.gold, 600);
-    spec.context.forEach((id, i) => {
-      const y = 762 + i * 124;
-      const h = id === "memory" ? 112 : 110;
-      d.path(`M48 ${y + h / 2} H74`, colors.muted, "both");
-      d.card(n[id], 78, y, 250, h, i === 3 ? colors.purple : colors.blue);
-    });
-    d.path("M332 564 H344 V1348 H332", colors.purple, "both");
-    d.text(spec.groups.action, 28, 1280, 315, 20, colors.purple, 600);
-    d.label(spec.edges.ticket, 197, 1311, 270, 17);
-    d.card(n.ticket, 68, 1330, 260, 106, colors.purple);
-    d.path("M198 1441 V1488", colors.muted, "both");
-    d.label(spec.edges.create, 198, 1470, 210, 18);
-    d.card(n.shortcut, 68, 1495, 260, 110, colors.purple);
+    const node = (id, x, y, w, h, color = colors.blue) => {
+      d.rect(x, y, w, h, color);
+      const size = 18;
+      const title = n[id].title.replaceAll("-", "-\n");
+      const count = lines(title, w - 16, size).length;
+      d.text(title, x + w / 2, y + h / 2 + 7 - (count - 1) * size * 0.65, w - 16, size, colors.ink, 600, "middle");
+    };
+    node("slack", 16, 104, 128, 60, colors.cyan);
+    node("route", 214, 104, 130, 60, colors.cyan);
+    d.path("M148 133 H208");
+    d.label(spec.edges.messages, 179, 92, 124, 18);
+    d.path("M280 168 V190", colors.purple);
+    node("resolved", 214, 196, 130, 62, colors.purple);
+    d.path("M348 134 H354 V410 H300", colors.cyan);
+    d.label(spec.edges.request, 294, 371, 104, 18);
+    d.path("M60 410 H6 V178 H48 V168", colors.cyan);
+    d.label(spec.edges.reply, 81, 199, 144, 18);
+    node("docs", 12, 266, 174, 60);
+    node("code", 216, 266, 128, 60);
+    d.path("M98 332 V346 H126 V378", colors.blue, "both");
+    d.path("M280 332 V346 H234 V378", colors.blue, "both");
+    d.rect(64, 384, 232, 114, "url(#agent-edge)");
+    d.text(n.agent.title, 180, 417, 216, 20, "#c4e7ff", 600, "middle");
+    d.text(n.agent.phoneDetail || n.agent.detail, 180, 451, 216, 18, colors.muted, 400, "middle");
+    d.path("M126 504 V526 H90 V545", colors.blue, "both");
+    d.path("M234 504 V526 H274 V545", colors.purple, "both");
+    node("data", 16, 552, 148, 62);
+    node("memory", 206, 552, 138, 62, colors.purple);
+    d.path("M180 504 V652 H87 V698", colors.purple, "both");
+    d.label(spec.edges.ticket, 181, 650, 300, 18);
+    node("ticket", 16, 704, 142, 62, colors.purple);
+    node("shortcut", 214, 704, 130, 62, colors.purple);
+    d.path("M164 735 H208", colors.purple, "both");
+    d.label(spec.edges.create, 180, 789, 250, 18);
   } else {
     d.text(spec.groups.route, 32, 104, 650, 22, colors.cyan, 600);
     d.card(n.slack, 32, 128, 242, 108);
