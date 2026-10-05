@@ -511,3 +511,20 @@
   .prose video.book-video--has-phone { display: none; }
   .book-video-phone { display: block; }
 }
+
+/* VideoEmbed size="wide". Text is capped at --width-measure and sits at the
+   left of a wider column, so centring in the column looks off. On desktop
+   the video is 90% of the text measure, centred under the text; below that
+   it fills the width like the text does. */
+.prose > .video-wide {
+  width: 100%;
+  max-width: var(--width-measure);
+  margin-inline: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .prose > .video-wide {
+    width: calc(var(--width-measure) * 0.9);
+    margin-inline: calc(var(--width-measure) * 0.05) auto;
+  }
+}
