@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import Link from "next/link";
 import path from "node:path";
 import { notFound } from "next/navigation";
 import { ChapterSidebar } from "@/components/publication/ChapterSidebar";
@@ -27,6 +28,11 @@ export default async function DedicationPage() {
           <h1 className="text-h1">Dedication</h1>
         </div>
         <article className="prose prose-invert mt-8">{body}</article>
+        <nav aria-label="Reading order" className="mt-12 max-w-(--width-measure) border-t border-border pt-6">
+          <Link href="/acknowledgments/" className="block min-h-12 rounded-lg border border-border px-4 py-3 text-p1 text-accent">
+            Acknowledgments →
+          </Link>
+        </nav>
       </main>
     </div>
   );

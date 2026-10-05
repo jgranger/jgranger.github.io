@@ -13,6 +13,9 @@
  * route at /book/references/citation-graph, so it keeps a part segment.
  */
 export function chapterHref({ part, slug }: { part: string; slug: string }): string {
+  if (part === "frontmatter") {
+    return `/${slug}/`;
+  }
   if (part === "references") {
     return `/book/references/${slug}/`;
   }
