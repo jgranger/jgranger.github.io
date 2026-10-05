@@ -17,19 +17,19 @@ export function VideoEmbed({
   poster?: string;
   description?: string;
   /**
-   * "lg" is 1.5x the default width (max-w-xl vs max-w-sm). "wide" lines up
-   * exactly with the running text on both edges (see .prose-measure) — the
-   * full column overhangs the text on the right, which reads as off-centre.
+   * "lg" is 1.5x the default width (max-w-xl vs max-w-sm). "wide" is centred
+   * under the running text rather than the column (see .video-wide) — the
+   * column overhangs the text on the right, which reads as off-centre.
    */
   size?: "sm" | "lg" | "wide";
 }) {
   const maxWidth = {
     sm: "max-w-sm",
     lg: "max-w-xl",
-    wide: "prose-measure",
+    wide: "video-wide",
   }[size];
   return (
-    <figure className={`my-8 mx-auto w-full ${maxWidth}`}>
+    <figure className={size === "wide" ? `my-8 ${maxWidth}` : `my-8 mx-auto w-full ${maxWidth}`}>
       {youTubeId(src) ? (
         <iframe
           src={`https://www.youtube-nocookie.com/embed/${youTubeId(src)}`}
