@@ -74,6 +74,16 @@ export async function ChapterView({ slug }: { slug: string }) {
   }
 
   const adjacent = getAdjacentChapters(CONTENT_DIR, slug);
+  if (slug === "one-problem-worth-solving") {
+    adjacent.previous = {
+      title: "Acknowledgments",
+      slug: "acknowledgments",
+      part: "frontmatter",
+      chapterNumber: 0,
+      summary: "",
+      status: "published",
+    };
+  }
   if (slug === "looking-forward") {
     adjacent.next = CITATION_CHAPTER;
   }

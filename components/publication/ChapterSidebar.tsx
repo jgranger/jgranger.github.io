@@ -48,6 +48,14 @@ export function ChapterSidebar({
                 Dedication
               </Link>
             </li>
+            <li>
+              <Link
+                href="/acknowledgments/"
+                className={`block min-h-11 rounded-md px-3 py-2.5 lg:min-h-0 lg:px-0 lg:py-1 ${currentSlug === "acknowledgments" ? "text-accent font-medium" : "text-foreground-secondary hover:text-accent"}`}
+              >
+                Acknowledgments
+              </Link>
+            </li>
             {chapters.map((chapter) => (
               <li key={chapter.slug}>
                 <Link
