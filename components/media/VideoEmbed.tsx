@@ -9,10 +9,18 @@ export function VideoEmbed({
   title: string;
   poster?: string;
   description?: string;
-  /** "lg" is 1.5x the default width (max-w-xl vs max-w-sm). */
-  size?: "sm" | "lg";
+  /**
+   * "lg" is 1.5x the default width (max-w-xl vs max-w-sm). "wide" matches
+   * "lg" on phones and tablets, then on desktop sits just inside the
+   * full-column screenshots around it.
+   */
+  size?: "sm" | "lg" | "wide";
 }) {
-  const maxWidth = size === "lg" ? "max-w-xl" : "max-w-sm";
+  const maxWidth = {
+    sm: "max-w-sm",
+    lg: "max-w-xl",
+    wide: "max-w-xl lg:max-w-[calc(100%-30px)]",
+  }[size];
   return (
     <figure className={`my-8 mx-auto w-full ${maxWidth}`}>
       <video
