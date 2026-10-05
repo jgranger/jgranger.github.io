@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { generateDiagramVariants } from "./lib/diagram-variants.mjs";
-import { imageAttributes } from "./lib/responsive-images.mjs";
+import { imageAttributes, responsiveSources } from "./lib/responsive-images.mjs";
 import { assignSafeNames } from "./lib/image-names.mjs";
 import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
 import { CHAPTERS, BONUS_PAGES } from "./lib/chapters.mjs";
@@ -31,7 +31,11 @@ const isMedia = (name) => IMAGE_EXTENSIONS.has(extOf(name)) || VIDEO_EXTENSIONS.
 // just a different component so they play instead of zoom.
 function mediaTag(src, width, alt) {
   const widthAttr = width ? ` width="${width}"` : "";
-  if (VIDEO_EXTENSIONS.has(extOf(src))) return `<InlineVideo src="${src}"${widthAttr} />`;
+  if (VIDEO_EXTENSIONS.has(extOf(src))) {
+    const { phoneSrc } = responsiveSources(src, imageMap, "/preview-images");
+    const phoneAttr = phoneSrc ? ` phoneSrc={${JSON.stringify(phoneSrc)}}` : "";
+    return `<InlineVideo src="${src}"${widthAttr}${phoneAttr} />`;
+  }
   return `<ZoomableImage src="${src}"${widthAttr} alt={${JSON.stringify(alt)}}${imageAttributes(src, imageMap, "/preview-images")} />`;
 }
 
