@@ -515,3 +515,12 @@
     font-size: 1.25rem;
   }
 }
+/* A chapter video with a .phone image swaps to that image on phones, where
+   a screen recording is too small to read. Unlayered so it beats the
+   display: block that .prose video.book-video gets in @layer base. */
+.book-video-phone { display: none; }
+
+@media (max-width: 639px) {
+  .prose video.book-video--has-phone { display: none; }
+  .book-video-phone { display: block; }
+}
