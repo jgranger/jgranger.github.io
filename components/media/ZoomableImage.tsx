@@ -165,7 +165,6 @@ export function ZoomableImage(props: ZoomableImageProps) {
           <img src={desktopSrc || src} alt={alt ?? ""} height={phoneSrc || tabletSrc ? undefined : height} className={className} style={inlineStyle} {...rest} />
         </picture>
       </button>
-      <span className="zoomable-image__hint" aria-hidden="true">Tap to open and zoom</span>
 
       {open && (
         <div

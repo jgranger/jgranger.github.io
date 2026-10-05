@@ -443,15 +443,6 @@
   }
 }
 
-.zoomable-image__hint {
-  display: none;
-  margin-top: 0.625rem;
-  color: var(--foreground-secondary);
-  font-size: var(--text-small);
-  line-height: 1.5;
-  text-align: center;
-}
-
 .image-viewer {
   height: 100vh;
   height: 100dvh;
@@ -487,10 +478,6 @@
 }
 
 @media (max-width: 1023px) {
-  .zoomable-image__hint {
-    display: block;
-  }
-
   .image-viewer__controls {
     inset-block-start: calc(env(safe-area-inset-top) + 0.75rem);
     inset-inline: 0.75rem 4rem;
