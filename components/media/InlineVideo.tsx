@@ -7,12 +7,16 @@ import { ZoomableImage } from "@/components/media/ZoomableImage";
 // A clip.phone.png beside the video (same convention as image variants)
 // replaces it on phones, where a screen recording is too small to read.
 export function InlineVideo({ src, width, phoneSrc }: { src: string; width?: string | number; phoneSrc?: string }) {
+  const animated = /(?:^|\/)neural-pathways-volume\.mp4(?:\?|$)/.test(src);
   const style = width ? { maxWidth: `min(100%, ${width}px)` } : undefined;
   const video = (
     <video
       className={phoneSrc ? "book-video book-video--has-phone" : "book-video"}
       src={src}
       controls
+      autoPlay={animated}
+      muted={animated}
+      loop={animated}
       playsInline
       preload="metadata"
       style={style}
