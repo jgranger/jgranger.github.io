@@ -134,9 +134,9 @@ let synced = 0;
 let missing = 0;
 
 CHAPTERS.forEach((chapter, i) => {
-  const sourcePath = path.join(SOURCE_DIR, chapter.file);
-  if (!fs.existsSync(sourcePath)) {
-    console.warn(`  (missing, skipped) ${chapter.file}`);
+  const sourcePath = chapterSourcePath(SOURCE_DIR, chapter);
+  if (!sourcePath) {
+    console.warn(`  (missing, skipped) chapter ${chapter.number}-*.md`);
     missing += 1;
     return;
   }

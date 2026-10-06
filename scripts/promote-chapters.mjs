@@ -16,7 +16,7 @@ import { generateDiagramVariants } from "./lib/diagram-variants.mjs";
 import { imageAttributes, responsiveSources } from "./lib/responsive-images.mjs";
 import { assignSafeNames } from "./lib/image-names.mjs";
 import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
-import { CHAPTERS } from "./lib/chapters.mjs";
+import { CHAPTERS, chapterSourcePath } from "./lib/chapters.mjs";
 
 const ROOT = process.cwd();
 const SOURCE_DIR = path.join(ROOT, "docs/private/chapters");
@@ -129,9 +129,9 @@ let promoted = 0;
 let missing = 0;
 
 CHAPTERS.forEach((chapter, i) => {
-  const sourcePath = path.join(SOURCE_DIR, chapter.file);
-  if (!fs.existsSync(sourcePath)) {
-    console.warn(`  (missing, skipped) ${chapter.file}`);
+  const sourcePath = chapterSourcePath(SOURCE_DIR, chapter);
+  if (!sourcePath) {
+    console.warn(`  (missing, skipped) chapter ${chapter.number}-*.md`);
     missing += 1;
     return;
   }
@@ -171,12 +171,12 @@ console.log(
     (missing ? ` (${missing} chapter file(s) missing)` : "")
 );
 
-// A missing file means a chapter was renamed in the content repo without
-// updating scripts/lib/chapters.mjs. Skipping it would ship a book with a
-// hole in it and prev/next links pointing at a page that doesn't exist.
+// A missing file means no NN-*.md exists for a chapter in
+// scripts/lib/chapters.mjs. Skipping it would ship a book with a hole in it
+// and prev/next links pointing at a page that doesn't exist.
 if (missing) {
   console.error(
-    `✗ ${missing} chapter file(s) listed in scripts/lib/chapters.mjs not found in ${path.relative(ROOT, SOURCE_DIR)}/`
+    `✗ ${missing} chapter(s) in scripts/lib/chapters.mjs have no matching NN-*.md in ${path.relative(ROOT, SOURCE_DIR)}/`
   );
   process.exit(1);
 }
