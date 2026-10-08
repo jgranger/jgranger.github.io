@@ -24,3 +24,21 @@ it("uses the revised desktop artwork as the fallback", () => {
   render(<ZoomableImage src="/original.png" desktopSrc="/revised.svg" phoneSrc="/phone.svg" alt="Revised diagram" />);
   expect(screen.getByRole("img")).toHaveAttribute("src", "/revised.svg");
 });
+
+
+it("opens the complete screenshot from a mobile excerpt and scrolls without wheel zoom", () => {
+  render(<ZoomableImage src="/preview.png" phoneSrc="/excerpt.svg" fullSrc="/complete.png" alt="Triage" />);
+  Object.defineProperty(screen.getByRole("img"), "currentSrc", { value: "/excerpt.svg" });
+  fireEvent.click(screen.getByRole("button", { name: "Open image viewer: Triage" }));
+  const dialog = screen.getByRole("dialog");
+  expect(dialog.querySelector("img")).toHaveAttribute("src", "/complete.png");
+  fireEvent.wheel(screen.getByLabelText("Scrollable image"), { deltaY: 120 });
+  expect(screen.getByRole("button", { name: "Reset zoom" })).toHaveTextContent("100%");
+  fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+  expect(screen.getByRole("button", { name: "Reset zoom" })).toHaveTextContent("150%");
+  fireEvent.click(screen.getByRole("button", { name: "Reset zoom" }));
+  expect(screen.getByRole("button", { name: "Reset zoom" })).toHaveTextContent("100%");
+  fireEvent.keyDown(document, { key: "Escape" });
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(document.body.style.overflow).not.toBe("hidden");
+});

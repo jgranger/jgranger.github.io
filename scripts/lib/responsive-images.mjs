@@ -5,7 +5,7 @@ export function responsiveSources(src, imageMap, prefix) {
   if (!original) return {};
   const stem = original.slice(0, -path.extname(original).length);
   const sources = {};
-  for (const viewport of ["phone", "tablet", "desktop"]) {
+  for (const viewport of ["phone", "tablet", "desktop", "full"]) {
     const candidates = [...imageMap.entries()].filter(([name]) =>
       name.startsWith(`${stem}.${viewport}.`) && /\.(svg|webp|png|jpe?g)$/i.test(name)
     );
@@ -19,3 +19,4 @@ export function imageAttributes(src, imageMap, prefix) {
   return Object.entries(responsiveSources(src, imageMap, prefix))
     .map(([name, value]) => ` ${name}={${JSON.stringify(value)}}`).join("");
 }
+

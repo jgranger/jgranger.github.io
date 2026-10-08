@@ -1,42 +1,39 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 6;
 const SCALE_STEP = 0.5;
 
-type Point = { x: number; y: number };
-
 type ZoomableImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
   phoneSrc?: string;
   tabletSrc?: string;
   desktopSrc?: string;
+  fullSrc?: string;
 };
 
 export function ZoomableImage(props: ZoomableImageProps) {
-  const { src, phoneSrc, tabletSrc, desktopSrc, alt, width, height, className, style, ...rest } = props;
-  const [viewerSrc, setViewerSrc] = useState(desktopSrc || src);
+  const { src, phoneSrc, tabletSrc, desktopSrc, fullSrc, alt, width, height, className, style, ...rest } = props;
+  const [viewerSrc, setViewerSrc] = useState(fullSrc || desktopSrc || src);
   // Obsidian's ![[file.png|420]] resize arrives as `width`. `.prose img`
   // forces width: auto, so a plain width attribute is ignored — apply it
   // as a cap instead, never wider than the column.
   const inlineStyle = width ? { ...style, maxWidth: `min(100%, ${width}px)` } : style;
   const [open, setOpen] = useState(false);
   const [scale, setScale] = useState(MIN_SCALE);
-  const [offset, setOffset] = useState<Point>({ x: 0, y: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
-  const pointersRef = useRef(new Map<number, Point>());
-  const dragStartRef = useRef<{ point: Point; offset: Point } | null>(null);
-  const pinchStartRef = useRef<{ distance: number; scale: number } | null>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   const reset = useCallback(() => {
     setScale(MIN_SCALE);
-    setOffset({ x: 0, y: 0 });
-    pointersRef.current.clear();
-    dragStartRef.current = null;
-    pinchStartRef.current = null;
+    if (canvasRef.current) {
+      canvasRef.current.scrollTop = 0;
+      canvasRef.current.scrollLeft = 0;
+    }
   }, []);
 
   const close = useCallback(() => {
@@ -48,7 +45,6 @@ export function ZoomableImage(props: ZoomableImageProps) {
   const setClampedScale = useCallback((nextScale: number) => {
     const clamped = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
     setScale(clamped);
-    if (clamped === MIN_SCALE) setOffset({ x: 0, y: 0 });
   }, []);
 
   useEffect(() => {
@@ -60,7 +56,7 @@ export function ZoomableImage(props: ZoomableImageProps) {
       if (event.key === "-") setClampedScale(scale - SCALE_STEP);
       if (event.key === "0") reset();
       if (event.key === "Tab") {
-        const controls = viewerRef.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)");
+        const controls = viewerRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), [tabindex="0"]');
         if (!controls?.length) return;
         const first = controls[0];
         const last = controls[controls.length - 1];
@@ -87,72 +83,14 @@ export function ZoomableImage(props: ZoomableImageProps) {
 
   if (!src) return null;
 
-  const pointerDistance = () => {
-    const points = [...pointersRef.current.values()];
-    if (points.length < 2) return 0;
-    return Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
-  };
-
-  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
-
-    if (pointersRef.current.size === 1 && scale > MIN_SCALE) {
-      dragStartRef.current = {
-        point: { x: event.clientX, y: event.clientY },
-        offset,
-      };
-    }
-
-    if (pointersRef.current.size === 2) {
-      pinchStartRef.current = { distance: pointerDistance(), scale };
-      dragStartRef.current = null;
-    }
-  };
-
-  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!pointersRef.current.has(event.pointerId)) return;
-    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
-
-    if (pointersRef.current.size >= 2 && pinchStartRef.current) {
-      const distance = pointerDistance();
-      if (pinchStartRef.current.distance > 0) {
-        setClampedScale(pinchStartRef.current.scale * (distance / pinchStartRef.current.distance));
-      }
-      return;
-    }
-
-    if (scale > MIN_SCALE && dragStartRef.current) {
-      setOffset({
-        x: dragStartRef.current.offset.x + event.clientX - dragStartRef.current.point.x,
-        y: dragStartRef.current.offset.y + event.clientY - dragStartRef.current.point.y,
-      });
-    }
-  };
-
-  const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-    pointersRef.current.delete(event.pointerId);
-    if (pointersRef.current.size < 2) pinchStartRef.current = null;
-    if (pointersRef.current.size === 0) dragStartRef.current = null;
-  };
-
-  const onWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setClampedScale(scale + (event.deltaY < 0 ? SCALE_STEP : -SCALE_STEP));
-  };
-
-  const toggleZoom = () => {
-    if (scale > MIN_SCALE) reset();
-    else setClampedScale(2);
-  };
-
   return (
     <>
       <button
         ref={triggerRef}
         type="button"
         onClick={(event) => {
-          setViewerSrc(event.currentTarget.querySelector("img")?.currentSrc || desktopSrc || src);
+          setViewerSrc(fullSrc || event.currentTarget.querySelector("img")?.currentSrc || desktopSrc || src);
+          reset();
           setOpen(true);
         }}
         aria-label={alt ? `Open image viewer: ${alt}` : "Open image viewer"}
@@ -166,7 +104,7 @@ export function ZoomableImage(props: ZoomableImageProps) {
         </picture>
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
           ref={viewerRef}
           role="dialog"
@@ -190,30 +128,17 @@ export function ZoomableImage(props: ZoomableImageProps) {
             ×
           </button>
 
-          <div
-            onWheel={onWheel}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            onDoubleClick={toggleZoom}
-            className={`image-viewer__canvas select-none ${scale > MIN_SCALE ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
-            style={{ touchAction: "none" }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+          <div ref={canvasRef} className="image-viewer__canvas" tabIndex={0} aria-label="Scrollable image">
             <img
               src={viewerSrc}
               alt={alt ?? ""}
               draggable={false}
-              onClick={(event) => event.stopPropagation()}
-              className="h-full w-full max-h-none max-w-none border-0 bg-transparent p-0 object-contain shadow-none will-change-transform"
-              style={{
-                transform: `translate(${offset.x / scale}px, ${offset.y / scale}px) scale(${scale})`,
-                transformOrigin: "center center",
-              }}
+              className="image-viewer__image"
+              style={{ width: `calc(min(100vw - 2rem, 1200px) * ${scale})` }}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
