@@ -36,7 +36,8 @@ function mediaTag(src, width, alt) {
     const phoneAttr = phoneSrc ? ` phoneSrc={${JSON.stringify(phoneSrc)}}` : "";
     return `<InlineVideo src="${src}"${widthAttr}${phoneAttr} />`;
   }
-  return `<ZoomableImage src="${src}"${widthAttr} alt={${JSON.stringify(alt)}}${imageAttributes(src, imageMap, "/preview-images")} />`;
+  const screenshotClass = /(?:everyaction-|chapter-08-|chapter-09-)/i.test(src) ? ' className="book-slack-screenshot"' : "";
+  return `<ZoomableImage src="${src}"${widthAttr}${screenshotClass} alt={${JSON.stringify(alt)}}${imageAttributes(src, imageMap, "/preview-images")} />`;
 }
 
 function findImageFiles(dir) {
