@@ -428,6 +428,19 @@
     padding: 0.25rem;
   }
 
+  .prose img.book-slack-screenshot {
+    width: 100%;
+    max-width: 100% !important;
+  }
+
+  .prose p:has(> button > picture > img.book-slack-screenshot) {
+    margin-block: 0.75rem;
+  }
+
+  .prose p:has(> button > picture > img.book-slack-screenshot) > button {
+    margin-block: 0;
+  }
+
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
