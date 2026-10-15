@@ -94,7 +94,7 @@ export function ZoomableImage(props: ZoomableImageProps) {
           setOpen(true);
         }}
         aria-label={alt ? `Open image viewer: ${alt}` : "Open image viewer"}
-        className="book-image block w-full cursor-zoom-in border-0 bg-transparent p-0"
+        className={`book-image w-full cursor-zoom-in border-0 bg-transparent p-0 ${String(src).includes("bitbot-regression-suite.png") ? "hidden lg:block" : "block"}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <picture>
