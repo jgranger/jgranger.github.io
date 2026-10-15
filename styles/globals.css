@@ -52,7 +52,7 @@
   --text-eyebrow--line-height: 1.4;
   --text-eyebrow--letter-spacing: 0.0625rem;
 
-  --width-reading: min(100%, 48rem);
+  --width-reading: min(100%, 58rem);
   --width-wide: min(100%, 84rem);
   --width-column: min(100%, 68rem);
   --width-measure: min(100%, 72ch);
@@ -365,7 +365,7 @@
 .prose video.book-video,
 .prose .book-video-phone {
   width: 100%;
-  max-width: min(100%, 48rem);
+  max-width: min(100%, 58rem);
   margin-inline: 0 auto;
 }
 
