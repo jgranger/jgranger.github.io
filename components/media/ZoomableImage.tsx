@@ -20,7 +20,7 @@ export function ZoomableImage(props: ZoomableImageProps) {
   // Obsidian's ![[file.png|420]] resize arrives as `width`. `.prose img`
   // forces width: auto, so a plain width attribute is ignored — apply it
   // as a cap instead, never wider than the column.
-  const inlineStyle = width ? { ...style, maxWidth: `min(100%, ${width}px)` } : style;
+  const inlineStyle = width ? { ...style, maxWidth: `min(100%, var(--width-measure), ${width}px)` } : style;
   const [open, setOpen] = useState(false);
   const [scale, setScale] = useState(MIN_SCALE);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -94,7 +94,7 @@ export function ZoomableImage(props: ZoomableImageProps) {
           setOpen(true);
         }}
         aria-label={alt ? `Open image viewer: ${alt}` : "Open image viewer"}
-        className="block w-full cursor-zoom-in border-0 bg-transparent p-0"
+        className="book-image block w-full cursor-zoom-in border-0 bg-transparent p-0"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <picture>
