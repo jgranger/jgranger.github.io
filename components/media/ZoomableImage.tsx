@@ -20,7 +20,7 @@ export function ZoomableImage(props: ZoomableImageProps) {
   // Obsidian's ![[file.png|420]] resize arrives as `width`. `.prose img`
   // forces width: auto, so a plain width attribute is ignored — apply it
   // as a cap instead, never wider than the column.
-  const inlineStyle = width ? { ...style, maxWidth: `min(100%, var(--width-measure), ${width}px)` } : style;
+  const inlineStyle = width ? { ...style, maxWidth: `min(100%, 48rem, ${width}px)` } : style;
   const [open, setOpen] = useState(false);
   const [scale, setScale] = useState(MIN_SCALE);
   const triggerRef = useRef<HTMLButtonElement>(null);
