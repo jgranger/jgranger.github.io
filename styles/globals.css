@@ -361,19 +361,14 @@
   overflow-wrap: break-word;
 }
 
-/*
- * Two measures inside one column. The chapter body column is wide
- * (--width-column); running text is capped at --width-measure and
- * centred inside it, while media — images, diagrams, code blocks,
- * tables, video — spans the whole column. Figures stop being squeezed
- * into the text measure.
- *
- * The narrow rule lists text elements explicitly rather than using
- * `.prose > *`. MDX components (diagrams, embeds) render as divs at the
- * top level of .prose, and a blanket rule would shrink every one of
- * them — the opposite of the point. Callout opts in by class because
- * it's prose-like but renders as a div.
- */
+.prose > .book-image,
+.prose > video.book-video,
+.prose > .book-video-phone {
+  width: 100%;
+  max-width: var(--width-measure);
+  margin-inline: 0 auto;
+}
+
 .prose > p,
 .prose > h1,
 .prose > h2,
