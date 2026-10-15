@@ -361,11 +361,11 @@
   overflow-wrap: break-word;
 }
 
-.prose > .book-image,
-.prose > video.book-video,
-.prose > .book-video-phone {
+.prose .book-image,
+.prose video.book-video,
+.prose .book-video-phone {
   width: 100%;
-  max-width: var(--width-measure);
+  max-width: min(100%, 48rem);
   margin-inline: 0 auto;
 }
 
