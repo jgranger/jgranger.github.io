@@ -8,7 +8,7 @@ import { ZoomableImage } from "@/components/media/ZoomableImage";
 // replaces it on phones, where a screen recording is too small to read.
 export function InlineVideo({ src, width, phoneSrc }: { src: string; width?: string | number; phoneSrc?: string }) {
   const animated = /(?:^|\/)neural-pathways-volume\.mp4(?:\?|$)/.test(src);
-  const style = width ? { maxWidth: `min(100%, var(--width-measure), ${width}px)` } : undefined;
+  const style = width ? { maxWidth: `min(100%, 48rem, ${width}px)` } : undefined;
   const video = (
     <video
       className={phoneSrc ? "book-video book-video--has-phone" : "book-video"}
