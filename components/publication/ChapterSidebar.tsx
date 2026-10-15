@@ -79,7 +79,7 @@ export function ChapterSidebar({
                     : "text-foreground-secondary hover:text-accent"
                 }
               >
-                12. Citation Graph
+                Citation Graph
               </Link>
             </li>
             {bonusUnlocked && (

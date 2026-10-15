@@ -31,7 +31,7 @@ const CITATION_CHAPTER: TocEntry = {
   title: "Citation Graph",
   slug: "citation-graph",
   part: "references",
-  chapterNumber: 12,
+  chapterNumber: 0,
   summary: "Follow the ideas in the book back through the research, production experience and independent convergence behind them.",
   status: "published",
 };
