@@ -11,7 +11,7 @@ import { generateDiagramVariants } from "./lib/diagram-variants.mjs";
 import { imageAttributes, responsiveSources } from "./lib/responsive-images.mjs";
 import { assignSafeNames } from "./lib/image-names.mjs";
 import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
-import { CHAPTERS, BONUS_PAGES } from "./lib/chapters.mjs";
+import { CHAPTERS, BONUS_PAGES, chapterSourcePath } from "./lib/chapters.mjs";
 
 const ROOT = process.cwd();
 const SOURCE_DIR = path.join(ROOT, "docs/private/chapters");
