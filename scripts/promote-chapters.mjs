@@ -75,6 +75,8 @@ function copyImages(imageMap) {
 }
 
 function rewriteImages(content, imageMap) {
+  content = content.replace(/(\bsrc=["'])\/preview-images\//g, "$1/book-images/");
+
   const resolve = (originalName) => {
     const hit = imageMap.get(originalName.trim());
     return hit ? `/book-images/${hit.safeName}` : null;
