@@ -48,10 +48,7 @@ export function chapterSourcePath(dir, chapter) {
 // its page component reads (see app/for-the-users/page.tsx and friends).
 // The page title stays fixed regardless of the draft's own heading — the
 // page's identity is "For the Users"; the draft's heading is just the
-// current bonus chapter's title within it. Only used by
-// sync-preview-content.mjs today (Render's promote step doesn't touch
-// bonus content), but lives here too so it never has to be duplicated
-// if that changes.
+// current bonus chapter's title within it.
 export const BONUS_PAGES = [
   { file: "the-multiplier.md", slug: "for-the-users", title: "For the Users" },
 ];

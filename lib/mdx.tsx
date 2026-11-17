@@ -1,5 +1,6 @@
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
 import type { ComponentType } from "react";
 
 export async function renderMdx(
@@ -12,6 +13,7 @@ export async function renderMdx(
       components={components}
       options={{
         mdxOptions: {
+          remarkPlugins: [remarkGfm],
           rehypePlugins: [rehypeSlug],
         },
       }}

@@ -16,11 +16,13 @@ import { generateDiagramVariants } from "./lib/diagram-variants.mjs";
 import { imageAttributes, responsiveSources } from "./lib/responsive-images.mjs";
 import { assignSafeNames } from "./lib/image-names.mjs";
 import { verifyMdxDir, reportMdxFailures } from "./lib/verify-mdx.mjs";
-import { CHAPTERS, chapterSourcePath } from "./lib/chapters.mjs";
+import { CHAPTERS, BONUS_PAGES, chapterSourcePath } from "./lib/chapters.mjs";
 
 const ROOT = process.cwd();
 const SOURCE_DIR = path.join(ROOT, "docs/private/chapters");
 const OUTPUT_DIR = path.join(ROOT, "content/book/book");
+const BONUS_SOURCE_DIR = path.join(ROOT, "docs/private/bonus");
+const BONUS_OUTPUT_DIR = path.join(ROOT, "content/bonus");
 const PRIVATE_DIR = path.join(ROOT, "docs/private");
 const IMAGES_OUT_DIR = path.join(ROOT, "public/book-images");
 
@@ -186,7 +188,33 @@ if (missing) {
 // Fail the Render build here, with a clear per-chapter error, rather than
 // shipping a chapter that only fails at request time in a reader's
 // browser with a cryptic MDX parser error.
-const failures = await verifyMdxDir(OUTPUT_DIR);
+fs.mkdirSync(BONUS_OUTPUT_DIR, { recursive: true });
+
+for (const page of BONUS_PAGES) {
+  const sourcePath = path.join(BONUS_SOURCE_DIR, page.file);
+  if (!fs.existsSync(sourcePath)) {
+    throw new Error(`Missing bonus chapter: ${path.relative(ROOT, sourcePath)}`);
+  }
+
+  const raw = fs.readFileSync(sourcePath, "utf-8");
+  const body = rewriteImages(stripLeadingHeading(raw, page.title), imageMap);
+  const frontmatter = [
+    "---",
+    `title: ${yamlString(page.title)}`,
+    `summary: ${yamlString("")}`,
+    "---",
+    "",
+  ].join("\n");
+
+  fs.writeFileSync(path.join(BONUS_OUTPUT_DIR, `${page.slug}.mdx`), frontmatter + body);
+}
+
+console.log(`Promoted ${BONUS_PAGES.length} bonus page(s).`);
+
+const failures = [
+  ...(await verifyMdxDir(OUTPUT_DIR)),
+  ...(await verifyMdxDir(BONUS_OUTPUT_DIR)),
+];
 if (reportMdxFailures(failures, ROOT)) {
   process.exit(1);
 }
