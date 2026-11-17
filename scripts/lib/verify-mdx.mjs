@@ -15,6 +15,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { compile } from "@mdx-js/mdx";
 import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
 
 function findMdxFiles(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -41,7 +42,7 @@ export async function verifyMdxDir(dir) {
     const raw = fs.readFileSync(filePath, "utf-8");
     const { content } = matter(raw);
     try {
-      await compile(content, { rehypePlugins: [rehypeSlug] });
+      await compile(content, { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeSlug] });
     } catch (error) {
       failures.push({ file: filePath, error });
     }

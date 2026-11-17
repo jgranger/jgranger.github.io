@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { execFileSync } from "node:child_process";
-import { CHAPTERS } from "./lib/chapters.mjs";
+import { CHAPTERS, BONUS_PAGES } from "./lib/chapters.mjs";
 
 let directory: string;
 
@@ -30,6 +30,14 @@ describe("chapter promotion", () => {
       fs.writeFileSync(path.join(chaptersDir, `${chapter.number}-fixture.md`), source);
     }
 
+    const bonusDir = path.join(privateDir, "bonus");
+    fs.mkdirSync(bonusDir, { recursive: true });
+    for (const page of BONUS_PAGES) {
+      fs.writeFileSync(path.join(bonusDir, page.file), "## Fear Is Not a Strategy\n\n" + source);
+    }
+    fs.mkdirSync(path.join(directory, "content/bonus"), { recursive: true });
+    fs.writeFileSync(path.join(directory, "content/bonus/for-the-users.mdx"), "Placeholder chapter");
+
     execFileSync(process.execPath, [path.resolve("scripts/promote-chapters.mjs")], {
       cwd: directory,
       stdio: "pipe",
@@ -45,5 +53,23 @@ describe("chapter promotion", () => {
     expect(promoted).not.toMatch(/src=["']\/preview-images\//);
     expect(promoted).toContain('src="https://example.com/preview-images/external.svg"');
     expect(fs.readFileSync(path.join(directory, "public/book-images/exchange.svg"), "utf8")).toBe(image);
+
+    const bonus = fs.readFileSync(path.join(directory, "content/bonus/for-the-users.mdx"), "utf8");
+    expect(bonus).toContain('title: "For the Users"');
+    expect(bonus).toContain("## Fear Is Not a Strategy");
+    expect(bonus).toContain('<img src="/book-images/exchange.svg"');
+    expect(bonus).not.toContain("Placeholder chapter");
+
+    fs.writeFileSync(path.join(bonusDir, BONUS_PAGES[0].file), '<VideoEmbed title="broken"quote" />');
+    expect(() => execFileSync(process.execPath, [path.resolve("scripts/promote-chapters.mjs")], {
+      cwd: directory,
+      stdio: "pipe",
+    })).toThrow(/failed to compile/);
+
+    fs.rmSync(path.join(bonusDir, BONUS_PAGES[0].file));
+    expect(() => execFileSync(process.execPath, [path.resolve("scripts/promote-chapters.mjs")], {
+      cwd: directory,
+      stdio: "pipe",
+    })).toThrow(/Missing bonus chapter/);
   });
 });
