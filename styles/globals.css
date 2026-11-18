@@ -544,3 +544,19 @@
   }
 }
 
+.prose .book-next-move {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .prose .book-next-move {
+    display: block;
+    max-width: 43rem;
+    margin: 1.75rem auto 0;
+    color: var(--foreground-subtle);
+    font-size: 0.875rem;
+    line-height: 1.8;
+    text-align: center;
+    font-style: italic;
+  }
+}
