@@ -23,10 +23,16 @@ export function KonamiListener() {
 
   useEffect(() => {
     function handleKeydown(event: KeyboardEvent) {
+      if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+
       const expected = SEQUENCE[progress.current];
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
 
       if (key === expected) {
+        if (progress.current > 0) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
         progress.current += 1;
         if (progress.current === SEQUENCE.length) {
           progress.current = 0;
@@ -41,8 +47,8 @@ export function KonamiListener() {
       }
     }
 
-    window.addEventListener("keydown", handleKeydown);
-    return () => window.removeEventListener("keydown", handleKeydown);
+    window.addEventListener("keydown", handleKeydown, true);
+    return () => window.removeEventListener("keydown", handleKeydown, true);
   }, [router]);
 
   return null;
