@@ -14,6 +14,7 @@ export function Header() {
             <span>Journey</span>
           </Link>
           <p className="book-masthead__tagline">Attention becomes action.</p>
+          <p className="book-masthead__publication">Published <time dateTime="2026-11-18">November 18, 2026</time></p>
         </div>
       </div>
     </header>

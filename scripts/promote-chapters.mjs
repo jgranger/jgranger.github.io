@@ -71,9 +71,26 @@ function buildImageMap() {
 function copyImages(imageMap) {
   fs.rmSync(IMAGES_OUT_DIR, { recursive: true, force: true });
   fs.mkdirSync(IMAGES_OUT_DIR, { recursive: true });
-  for (const { fullPath, safeName } of imageMap.values()) {
+  const renderedFiles = [
+    ...fs.readdirSync(OUTPUT_DIR).map((file) => path.join(OUTPUT_DIR, file)),
+    ...fs.readdirSync(BONUS_OUTPUT_DIR).map((file) => path.join(BONUS_OUTPUT_DIR, file)),
+  ].filter((file) => file.endsWith(".mdx"));
+  const referencedFiles = new Set();
+  for (const file of renderedFiles) {
+    const body = fs.readFileSync(file, "utf-8");
+    for (const match of body.matchAll(/\/book-images\/([^"'\s)}<>]+)/g)) {
+      referencedFiles.add(match[1]);
+    }
+  }
+  const availableFiles = new Map(
+    [...imageMap.values()].map(({ fullPath, safeName }) => [safeName, fullPath])
+  );
+  for (const safeName of referencedFiles) {
+    const fullPath = availableFiles.get(safeName);
+    if (!fullPath) throw new Error(`Published chapter references missing media: ${safeName}`);
     fs.copyFileSync(fullPath, path.join(IMAGES_OUT_DIR, safeName));
   }
+  return referencedFiles.size;
 }
 
 function rewriteImages(content, imageMap) {
@@ -127,7 +144,6 @@ fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
 generateDiagramVariants(PRIVATE_DIR);
 const imageMap = buildImageMap();
-copyImages(imageMap);
 
 let promoted = 0;
 let missing = 0;
@@ -170,8 +186,7 @@ CHAPTERS.forEach((chapter, i) => {
 });
 
 console.log(
-  `Promoted ${promoted} chapter(s) into ${path.relative(ROOT, OUTPUT_DIR)}/ ` +
-    `and ${imageMap.size} image(s) into ${path.relative(ROOT, IMAGES_OUT_DIR)}/` +
+  `Promoted ${promoted} chapter(s) into ${path.relative(ROOT, OUTPUT_DIR)}/` +
     (missing ? ` (${missing} chapter file(s) missing)` : "")
 );
 
@@ -210,6 +225,8 @@ for (const page of BONUS_PAGES) {
 }
 
 console.log(`Promoted ${BONUS_PAGES.length} bonus page(s).`);
+const mediaCount = copyImages(imageMap);
+console.log(`Published ${mediaCount} referenced media file(s) into ${path.relative(ROOT, IMAGES_OUT_DIR)}/`);
 
 const failures = [
   ...(await verifyMdxDir(OUTPUT_DIR)),

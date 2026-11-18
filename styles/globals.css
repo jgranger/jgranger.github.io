@@ -285,6 +285,13 @@
   color: var(--foreground-secondary);
 }
 
+.book-masthead__publication {
+  margin-top: 0.75rem;
+  color: var(--foreground-subtle);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 @media (max-width: 639px) {
   .book-masthead__hero {
     min-height: 32rem;

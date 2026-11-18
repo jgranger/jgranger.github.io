@@ -13,6 +13,7 @@ const BONUS_FILE = path.join(BONUS_DIR, "for-the-users.mdx");
 
 export const metadata = {
   title: "For the Users",
+  robots: { index: false, follow: false },
 };
 
 export default async function ForTheUsersPage() {

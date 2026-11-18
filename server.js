@@ -15,10 +15,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.join(__dirname, "out");
 const PORT = process.env.PORT || 3000;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+const BOOK_PUBLIC = process.env.BOOK_PUBLIC === "true";
 const COOKIE_NAME = "agentic_journey_access";
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
 
-if (!ACCESS_TOKEN) {
+if (!ACCESS_TOKEN && !BOOK_PUBLIC) {
   console.error("ACCESS_TOKEN environment variable is required. Refusing to start.");
   process.exit(1);
 }
@@ -66,6 +67,7 @@ function parseCookies(header) {
 }
 
 function hasValidAccess(req, url) {
+  if (BOOK_PUBLIC) return true;
   const cookies = parseCookies(req.headers.cookie);
   if (cookies[COOKIE_NAME] && timingSafeEqual(cookies[COOKIE_NAME], ACCESS_TOKEN)) return true;
   const token = url.searchParams.get("token");
@@ -162,12 +164,13 @@ const server = http.createServer((req, res) => {
   }
 
   const queryToken = url.searchParams.get("token");
-  if (queryToken && timingSafeEqual(queryToken, ACCESS_TOKEN)) {
+  if (queryToken && (BOOK_PUBLIC || timingSafeEqual(queryToken, ACCESS_TOKEN))) {
     url.searchParams.delete("token");
-    res.writeHead(302, {
-      "Set-Cookie": `${COOKIE_NAME}=${encodeURIComponent(ACCESS_TOKEN)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${COOKIE_MAX_AGE_SECONDS}`,
-      Location: url.pathname + url.search,
-    });
+    const headers = { Location: url.pathname + url.search };
+    if (!BOOK_PUBLIC) {
+      headers["Set-Cookie"] = `${COOKIE_NAME}=${encodeURIComponent(ACCESS_TOKEN)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${COOKIE_MAX_AGE_SECONDS}`;
+    }
+    res.writeHead(302, headers);
     res.end();
     return;
   }
