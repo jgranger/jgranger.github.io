@@ -49,7 +49,8 @@ describe("KonamiListener", () => {
 
     expect(prevented).toEqual([false, ...Array(10).fill(true)]);
     expect(sessionStorage.getItem("konami-unlocked")).toBe("true");
-    expect(push).toHaveBeenCalledExactlyOnceWith("/for-the-users/");
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(push).toHaveBeenCalledWith("/for-the-users/");
   });
 
   it("does not navigate for an incomplete sequence", () => {
