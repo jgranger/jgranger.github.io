@@ -92,7 +92,7 @@ export function ChapterSidebar({
                       : "text-foreground-subtle hover:text-accent italic"
                   }
                 >
-                  13. For the Users
+                  For the Users
                 </Link>
               </li>
             )}
