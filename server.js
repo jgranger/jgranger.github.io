@@ -18,6 +18,8 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const BOOK_PUBLIC = process.env.BOOK_PUBLIC === "true";
 const COOKIE_NAME = "agentic_journey_access";
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
+const VISITOR_COOKIE = "aj_visitor";
+const VISITOR_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 if (!ACCESS_TOKEN && !BOOK_PUBLIC) {
   console.error("ACCESS_TOKEN environment variable is required. Refusing to start.");
@@ -155,8 +157,69 @@ function serveFile(req, res, filePath) {
   fs.createReadStream(filePath).pipe(res);
 }
 
+function trackBookVisit(req, res) {
+  if (!BOOK_PUBLIC || req.method !== "POST") {
+    res.writeHead(404);
+    res.end();
+    return;
+  }
+  const host = req.headers.host;
+  const origin = req.headers.origin;
+  if (!host || (origin && new URL(origin).host !== host)) {
+    res.writeHead(403);
+    res.end();
+    return;
+  }
+  let body = "";
+  req.on("data", (chunk) => {
+    body += chunk;
+    if (body.length > 2048) req.destroy();
+  });
+  req.on("end", () => {
+    let payload;
+    try {
+      payload = JSON.parse(body);
+    } catch {
+      res.writeHead(400);
+      res.end();
+      return;
+    }
+    const pathname = typeof payload.path === "string" ? payload.path : "";
+    const validPath = /^\/$|^\/(book\/[a-z0-9-]+|for-the-users|dedication|acknowledgments|about|citations)\/?$/.test(pathname);
+    if (!validPath) {
+      res.writeHead(400);
+      res.end();
+      return;
+    }
+    const cookies = parseCookies(req.headers.cookie);
+    const previous = cookies[VISITOR_COOKIE];
+    const returning = typeof previous === "string" && /^[0-9a-f]{32}$/.test(previous);
+    const visitor = returning ? previous : crypto.randomBytes(16).toString("hex");
+    const visitorHash = crypto.createHash("sha256").update(visitor).digest("hex").slice(0, 24);
+    const source = typeof payload.source === "string" && /^[a-z0-9.-]{1,100}$/.test(payload.source)
+      ? payload.source : "direct";
+    console.log("BOOK_VISIT " + JSON.stringify({
+      visitor: visitorHash,
+      newVisitor: !returning,
+      path: pathname,
+      source,
+      at: new Date().toISOString(),
+    }));
+    const headers = { "Cache-Control": "no-store" };
+    if (!returning) {
+      headers["Set-Cookie"] = `${VISITOR_COOKIE}=${visitor}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${VISITOR_AGE_SECONDS}`;
+    }
+    res.writeHead(204, headers);
+    res.end();
+  });
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+  if (url.pathname === "/__book_visit") {
+    trackBookVisit(req, res);
+    return;
+  }
 
   if (!hasValidAccess(req, url)) {
     send401(res);
