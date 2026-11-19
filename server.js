@@ -165,7 +165,15 @@ function trackBookVisit(req, res) {
   }
   const host = req.headers.host;
   const origin = req.headers.origin;
-  if (!host || (origin && new URL(origin).host !== host)) {
+  let matchingOrigin = !origin;
+  if (origin) {
+    try {
+      matchingOrigin = new URL(origin).host === host;
+    } catch {
+      matchingOrigin = false;
+    }
+  }
+  if (!host || !matchingOrigin) {
     res.writeHead(403);
     res.end();
     return;
