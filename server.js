@@ -9,6 +9,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { checkAnalyticsStore, saveAnalyticsVisit } from "./lib/analytics-store.js";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -183,7 +184,7 @@ function trackBookVisit(req, res) {
     body += chunk;
     if (body.length > 2048) req.destroy();
   });
-  req.on("end", () => {
+  req.on("end", async () => {
     let payload;
     try {
       payload = JSON.parse(body);
@@ -206,11 +207,30 @@ function trackBookVisit(req, res) {
     const visitorHash = crypto.createHash("sha256").update(visitor).digest("hex").slice(0, 24);
     const source = typeof payload.source === "string" && /^[a-z0-9.-]{1,100}$/.test(payload.source)
       ? payload.source : "direct";
-    console.log("BOOK_VISIT " + JSON.stringify({
+    let stats;
+    try {
+      stats = await saveAnalyticsVisit({
+        visitor: visitorHash,
+        path: pathname,
+        source,
+        day: new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }),
+      });
+    } catch (error) {
+      console.error("BOOK_ANALYTICS_WRITE_FAILED", error.message);
+      res.writeHead(503, { "Cache-Control": "no-store" });
+      res.end();
+      return;
+    }
+    console.log("BOOK_VISIT_PERSISTED " + JSON.stringify({
       visitor: visitorHash,
-      newVisitor: !returning,
+      newVisitor: stats.first === 1,
       path: pathname,
       source,
+      readers: stats.readers,
+      views: stats.views,
+      chapterViews: stats.chapterViews,
+      dayReaders: stats.dayReaders,
+      dayViews: stats.dayViews,
       at: new Date().toISOString(),
     }));
     const headers = { "Cache-Control": "no-store" };
@@ -256,5 +276,10 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Token-gated server listening on port ${PORT}`);
+  console.log(`Book server listening on port ${PORT}`);
+  if (BOOK_PUBLIC) {
+    checkAnalyticsStore()
+      .then(() => console.log("BOOK_ANALYTICS_READY"))
+      .catch((error) => console.error("BOOK_ANALYTICS_UNAVAILABLE", error.message));
+  }
 });
