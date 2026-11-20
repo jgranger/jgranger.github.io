@@ -9,7 +9,8 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { checkAnalyticsStore, saveAnalyticsVisit } from "./lib/analytics-store.js";
+import { checkAnalyticsStore, saveAnalyticsVisit, resolveVisitorLocation } from "./lib/analytics-store.js";
+import { clientIpFromHeaders, deviceInfoFromHeaders } from "./lib/visit-enrichment.js";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -207,13 +208,21 @@ function trackBookVisit(req, res) {
     const visitorHash = crypto.createHash("sha256").update(visitor).digest("hex").slice(0, 24);
     const source = typeof payload.source === "string" && /^[a-z0-9.-]{1,100}$/.test(payload.source)
       ? payload.source : "direct";
+    const ip = clientIpFromHeaders(req.headers);
+    const device = deviceInfoFromHeaders(req.headers);
     let stats;
     try {
+      const location = await resolveVisitorLocation(ip);
       stats = await saveAnalyticsVisit({
         visitor: visitorHash,
         path: pathname,
         source,
         day: new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }),
+        ip,
+        location,
+        device,
+        language: typeof payload.language === "string" ? payload.language.slice(0, 35) : "",
+        timeZone: typeof payload.timeZone === "string" ? payload.timeZone.slice(0, 75) : "",
       });
     } catch (error) {
       console.error("BOOK_ANALYTICS_WRITE_FAILED", error.message);
@@ -226,6 +235,12 @@ function trackBookVisit(req, res) {
       newVisitor: stats.first === 1,
       path: pathname,
       source,
+      country: stats.country,
+      region: stats.region,
+      city: stats.city,
+      browser: device.browser,
+      platform: device.platform,
+      device: device.device,
       readers: stats.readers,
       views: stats.views,
       chapterViews: stats.chapterViews,

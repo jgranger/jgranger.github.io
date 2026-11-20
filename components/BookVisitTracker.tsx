@@ -17,7 +17,12 @@ export function BookVisitTracker() {
         }
       } catch {}
     }
-    const data = JSON.stringify({ path: pathname, source });
+    const data = JSON.stringify({
+      path: pathname,
+      source,
+      language: navigator.language || "",
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+    });
     if (navigator.sendBeacon) {
       navigator.sendBeacon("/__book_visit", new Blob([data], { type: "text/plain" }));
     } else {
