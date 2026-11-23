@@ -159,34 +159,6 @@ function serveFile(req, res, filePath) {
   fs.createReadStream(filePath).pipe(res);
 }
 
-async function privateVisitorLookup(req, res, url) {
-  const supplied = req.headers.authorization;
-  const token = typeof supplied === "string" && supplied.startsWith("Bearer ") ? supplied.slice(7) : "";
-  if (req.method !== "GET" || !ACCESS_TOKEN || !token || !timingSafeEqual(token, ACCESS_TOKEN)) {
-    res.writeHead(404, { "Cache-Control": "no-store" });
-    res.end();
-    return;
-  }
-  const visitorId = url.searchParams.get("visitor") || "";
-  if (!/^[0-9a-f]{24}$/.test(visitorId)) {
-    res.writeHead(400, { "Cache-Control": "no-store" });
-    res.end();
-    return;
-  }
-  try {
-    const ip = await getVisitorIp(visitorId);
-    res.writeHead(ip ? 200 : 404, {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "private, no-store",
-      "X-Robots-Tag": "noindex, nofollow",
-    });
-    res.end(JSON.stringify(ip ? { visitor: visitorId, ip } : { error: "IP record not found" }));
-  } catch {
-    res.writeHead(503, { "Cache-Control": "no-store" });
-    res.end();
-  }
-}
-
 function trackBookVisit(req, res) {
   if (!BOOK_PUBLIC || req.method !== "POST") {
     res.writeHead(404);
@@ -287,10 +259,6 @@ function trackBookVisit(req, res) {
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  if (url.pathname === "/__private_visitor_lookup") {
-    privateVisitorLookup(req, res, url);
-    return;
-  }
   if (url.pathname === "/__book_visit") {
     trackBookVisit(req, res);
     return;
