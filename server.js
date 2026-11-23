@@ -9,7 +9,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { checkAnalyticsStore, saveAnalyticsVisit, resolveVisitorLocation, getVisitorIp } from "./lib/analytics-store.js";
+import { checkAnalyticsStore, saveAnalyticsVisit, resolveVisitorLocation } from "./lib/analytics-store.js";
 import { clientIpFromHeaders, deviceInfoFromHeaders } from "./lib/visit-enrichment.js";
 import { fileURLToPath } from "node:url";
 
@@ -294,16 +294,7 @@ server.listen(PORT, () => {
   console.log(`Book server listening on port ${PORT}`);
   if (BOOK_PUBLIC) {
     checkAnalyticsStore()
-      .then(async () => {
-        console.log("BOOK_ANALYTICS_READY");
-        try {
-          const visitorId = "6debf30b8efb2c73c0aa79dc";
-          const ip = await getVisitorIp(visitorId);
-          console.log("BOOK_PRIVATE_LOOKUP " + JSON.stringify({ visitor: visitorId, ip: ip || null }));
-        } catch (error) {
-          console.error("BOOK_PRIVATE_LOOKUP_FAILED", error.message);
-        }
-      })
+.then(() => console.log("BOOK_ANALYTICS_READY"))
       .catch((error) => console.error("BOOK_ANALYTICS_UNAVAILABLE", error.message));
   }
 });
